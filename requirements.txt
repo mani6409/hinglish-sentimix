@@ -1,0 +1,12 @@
+# Core libraries. After everyone's first successful install, pin exact versions
+# with `pip freeze` so the whole team runs identical versions.
+torch
+transformers
+datasets
+scikit-learn
+pandas
+numpy
+matplotlib
+seaborn
+jupyter
+tqdm

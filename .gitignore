@@ -1,0 +1,22 @@
+# data and models are too large for Git; document where to download them instead
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+checkpoints/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# misc
+.DS_Store
+wandb/
+.env
