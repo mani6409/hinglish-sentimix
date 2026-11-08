@@ -32,6 +32,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Metric
+The official metric is **weighted F1** (per-class F1 averaged by class size; Patwa et al., 2020, Sec. 3.1). Always use `src/metrics.py`:
+
+```python
+from src.metrics import compute_metrics
+compute_metrics(y_true, y_pred)["weighted_f1"]
+```
+
+## Code you can use
+- `src/data.py`: `load_split("train" | "dev" | "test")` returns one row per tweet (uid, label, text, tokens, langs).
+- `src/seed.py`: `set_seed(42)` at the start of every script.
+- `src/metrics.py`: `compute_metrics`, `confusion`.
+- Tests: `python -m pytest -q`
+
 ## Data
 Download the SentiMix Hinglish data and place it in `data/raw/`. Exact source and format: see `docs/` (to be added).
 

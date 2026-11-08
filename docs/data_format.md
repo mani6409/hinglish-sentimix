@@ -50,5 +50,5 @@ To get one row per tweet, join the tokens of each tweet with spaces and keep the
 
 ## Things to check during EDA
 - The language tags in the data may be wrong in places (some tokens look misassigned), so treat them as noisy when computing the code-mixing index.
-- `Hinglish_test_labels.txt` has 3,000 lines including the header; confirm it matches the 3,000 test tweets before using it.
+- `Hinglish_test_labels.txt`: checked, all 3,000 test tweets have a label (joined by id in `src/data.py`).
 - Use the test labels only for the single final test run.
