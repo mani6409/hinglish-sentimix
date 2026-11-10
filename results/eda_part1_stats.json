@@ -1,0 +1,176 @@
+{
+  "labels": {
+    "train": {
+      "negative": 4102,
+      "neutral": 5264,
+      "positive": 4634,
+      "total": 14000,
+      "share_%": {
+        "negative": 29.3,
+        "neutral": 37.6,
+        "positive": 33.1
+      }
+    },
+    "dev": {
+      "negative": 890,
+      "neutral": 1128,
+      "positive": 982,
+      "total": 3000,
+      "share_%": {
+        "negative": 29.7,
+        "neutral": 37.6,
+        "positive": 32.7
+      }
+    },
+    "test": {
+      "negative": 900,
+      "neutral": 1100,
+      "positive": 1000,
+      "total": 3000,
+      "share_%": {
+        "negative": 30.0,
+        "neutral": 36.7,
+        "positive": 33.3
+      }
+    }
+  },
+  "length": {
+    "train": {
+      "tokens": {
+        "mean": 26.11,
+        "median": 28.0,
+        "p90": 33.0,
+        "p95": 34.0,
+        "p99": 37.0,
+        "max": 56,
+        "min": 1
+      },
+      "chars": {
+        "mean": 127.02,
+        "median": 142.0,
+        "p90": 149.0,
+        "p95": 151.0,
+        "p99": 154.0,
+        "max": 179,
+        "min": 5
+      }
+    },
+    "dev": {
+      "tokens": {
+        "mean": 26.23,
+        "median": 28.0,
+        "p90": 33.0,
+        "p95": 34.0,
+        "p99": 36.0,
+        "max": 44,
+        "min": 8
+      },
+      "chars": {
+        "mean": 127.69,
+        "median": 142.0,
+        "p90": 149.0,
+        "p95": 151.0,
+        "p99": 154.00999999999976,
+        "max": 163,
+        "min": 35
+      }
+    },
+    "test": {
+      "tokens": {
+        "mean": 26.12,
+        "median": 28.0,
+        "p90": 33.0,
+        "p95": 34.0,
+        "p99": 36.00999999999976,
+        "max": 41,
+        "min": 8
+      },
+      "chars": {
+        "mean": 129.9,
+        "median": 144.0,
+        "p90": 153.0,
+        "p95": 155.0,
+        "p99": 168.0,
+        "max": 212,
+        "min": 34
+      }
+    },
+    "train_mean_tokens_by_label": {
+      "negative": 27.04,
+      "neutral": 25.76,
+      "positive": 25.69
+    }
+  },
+  "language": {
+    "train": {
+      "token_counts": {
+        "Eng": 121412,
+        "O": 73735,
+        "Hin": 169893,
+        "EMT": 520
+      },
+      "token_share_%": {
+        "EMT": 0.1,
+        "Eng": 33.2,
+        "Hin": 46.5,
+        "O": 20.2
+      },
+      "tweets_without_any_Hin_or_Eng": 0,
+      "near_monolingual_tweets(>=90%)": 11,
+      "near_monolingual_%": 0.1,
+      "mean_dominant_share": 0.702
+    },
+    "dev": {
+      "token_counts": {
+        "O": 15959,
+        "Eng": 25615,
+        "Hin": 37004,
+        "EMT": 100
+      },
+      "token_share_%": {
+        "EMT": 0.1,
+        "Eng": 32.6,
+        "Hin": 47.0,
+        "O": 20.3
+      },
+      "tweets_without_any_Hin_or_Eng": 0,
+      "near_monolingual_tweets(>=90%)": 2,
+      "near_monolingual_%": 0.1,
+      "mean_dominant_share": 0.7
+    },
+    "test": {
+      "token_counts": {
+        "O": 15787,
+        "Eng": 26358,
+        "Hin": 36122,
+        "EMT": 96
+      },
+      "token_share_%": {
+        "EMT": 0.1,
+        "Eng": 33.6,
+        "Hin": 46.1,
+        "O": 20.1
+      },
+      "tweets_without_any_Hin_or_Eng": 0,
+      "near_monolingual_tweets(>=90%)": 2,
+      "near_monolingual_%": 0.1,
+      "mean_dominant_share": 0.703
+    }
+  },
+  "checks": {
+    "empty_tweets": {
+      "train": 0,
+      "dev": 0,
+      "test": 0
+    },
+    "duplicate_texts_within_split": {
+      "train": 1,
+      "dev": 0,
+      "test": 0
+    },
+    "texts_in_both_train_and_dev": 0,
+    "texts_in_both_train_and_test": 1,
+    "texts_in_both_dev_and_test": 0,
+    "train_texts_with_conflicting_labels": 0
+  }
+}
