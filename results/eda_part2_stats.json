@@ -1,0 +1,72 @@
+{
+  "note": "standard CMI formula, language-independent tags: O and EMT",
+  "mean_cmi": {
+    "train": 29.77,
+    "dev": 29.96,
+    "test": 29.71
+  },
+  "paper_mean_cmi": {
+    "train": 25.32,
+    "dev": 25.53,
+    "test": 25.13
+  },
+  "train_cmi_quantiles": {
+    "0.0": 0.0,
+    "0.1": 16.67,
+    "0.25": 21.05,
+    "0.5": 28.57,
+    "0.75": 38.1,
+    "0.9": 45.0,
+    "1.0": 50.0
+  },
+  "train_tweets_with_cmi_zero": 1,
+  "train_cmi_by_label": {
+    "negative": {
+      "mean": 28.86,
+      "median": 27.27,
+      "std": 9.75
+    },
+    "neutral": {
+      "mean": 30.35,
+      "median": 29.41,
+      "std": 10.43
+    },
+    "positive": {
+      "mean": 29.91,
+      "median": 29.17,
+      "std": 10.66
+    }
+  },
+  "train_label_share_by_cmi_tercile_%": {
+    "low": {
+      "cmi_range": [
+        0.0,
+        23.8
+      ],
+      "tweets": 4809,
+      "negative": 31.7,
+      "neutral": 34.9,
+      "positive": 33.4
+    },
+    "mid": {
+      "cmi_range": [
+        24.0,
+        34.8
+      ],
+      "tweets": 4576,
+      "negative": 31.1,
+      "neutral": 38.0,
+      "positive": 30.9
+    },
+    "high": {
+      "cmi_range": [
+        35.0,
+        50.0
+      ],
+      "tweets": 4615,
+      "negative": 25.0,
+      "neutral": 40.1,
+      "positive": 35.0
+    }
+  }
+}
