@@ -1,1 +1,5 @@
 date,who,model,data_version,settings,seed,dev_score,notes,lesson_learned
+2026-11-11,Mani,majority-class,raw (tokens joined by spaces),always 'neutral',42,0.2055,floor,"floor: 37.6% accuracy but weighted F1 only 0.205, so F1 punishes always guessing one class"
+2026-11-11,Mani,tfidf word_1-2 + logistic regression,raw (tokens joined by spaces),C=1.0; min_df=2; sublinear_tf; features=47284,42,0.6113,"best of C in [0.1, 1.0, 10.0] chosen on dev",about 0.61 dev; neutral is the hardest class (F1 0.53)
+2026-11-11,Mani,tfidf char_2-5 + logistic regression,raw (tokens joined by spaces),C=1.0; min_df=2; sublinear_tf; features=122301,42,0.6127,"best of C in [0.1, 1.0, 10.0] chosen on dev","no real gain over word n-grams (+0.0014, within noise); our spelling-variant hypothesis is not supported by this model"
+2026-11-11,Mani,tfidf word+char + logistic regression,raw (tokens joined by spaces),C=0.1; min_df=2; sublinear_tf; features=169585,42,0.6121,"best of C in [0.1, 1.0, 10.0] chosen on dev","no gain over either alone, more features; all three TF-IDF variants are tied"
