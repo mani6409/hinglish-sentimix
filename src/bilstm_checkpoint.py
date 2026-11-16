@@ -34,7 +34,7 @@ from torch.utils.data import DataLoader
 from src.bilstm_data import ID2LABEL, SentimentDataset, TextEncoder, make_batch
 from src.preprocess import DEFAULT_VARIANTS_PATH, PRESETS, preprocess_text
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2  # 2: word vocabularies reserve the placeholder ids and the encoder stores `special_words`
 REQUIRED_KEYS = ("format_version", "model_state", "config", "encoder", "labels", "meta")
 
 

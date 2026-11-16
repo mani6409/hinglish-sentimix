@@ -15,7 +15,7 @@ torch = pytest.importorskip("torch")
 import pandas as pd  # noqa: E402
 
 import src.train_bilstm as tb  # noqa: E402
-from src.bilstm_data import SentimentDataset, TextEncoder, make_batch  # noqa: E402
+from src.bilstm_data import PLACEHOLDER_WORDS, SentimentDataset, TextEncoder, make_batch  # noqa: E402
 from src.bilstm_model import POOLINGS, BiLSTMClassifier, CharCNN  # noqa: E402
 from src.metrics import LABELS  # noqa: E402
 from src.preprocess import load_processed_split  # noqa: E402
@@ -214,8 +214,9 @@ def test_early_stopping_stops_before_max_epochs(data_root):
 def test_dev_only_words_never_enter_the_vocabulary(data_root):
     tr, dv = _frames(data_root)
     enc = TextEncoder.fit(list(tr["text_proc"]), word_min_freq=1)
-    train_words = {w.lower() for t in tr["text_proc"] for w in t.split()}
-    assert set(enc.word_vocab.itos[2:]) == train_words
+    # ordinary words are lowercased; the placeholder words USER / URL keep their spelling and are always reserved
+    train_words = {w if w in PLACEHOLDER_WORDS else w.lower() for t in tr["text_proc"] for w in t.split()}
+    assert set(enc.word_vocab.itos[2:]) == train_words | set(PLACEHOLDER_WORDS)
     ds = SentimentDataset(enc, ["totally unseen words here"], None)
     assert ds[0][0] == [1, 1, 1, 1]  # all <unk>
     assert make_batch([ds[0]])["words"].shape == (1, 4)

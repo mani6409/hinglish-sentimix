@@ -8,6 +8,7 @@ torch = pytest.importorskip("torch")
 
 import src.bilstm_checkpoint as ck  # noqa: E402
 from src.bilstm_checkpoint import checkpoint_path, load_checkpoint  # noqa: E402
+from src.bilstm_data import PLACEHOLDER_WORDS  # noqa: E402
 from src.metrics import compute_metrics  # noqa: E402
 from src.preprocess import PRESETS, load_processed_split  # noqa: E402
 from src.train_bilstm import BiLSTMConfig, main, run_experiment  # noqa: E402
@@ -115,8 +116,8 @@ def test_metadata_matches_the_run(trained):
 
 def test_vocabularies_in_the_checkpoint_come_from_train_only(trained):
     ckpt = load_checkpoint(checkpoint_path(trained["out"], "bilstm_normalized", 42))
-    train_words = {w.lower() for t in trained["tr"]["text_proc"] for w in t.split()}
-    assert set(ckpt.encoder.word_vocab.itos[2:]) == train_words
+    train_words = {w if w in PLACEHOLDER_WORDS else w.lower() for t in trained["tr"]["text_proc"] for w in t.split()}
+    assert set(ckpt.encoder.word_vocab.itos[2:]) == train_words | set(PLACEHOLDER_WORDS)
 
 
 def test_checkpoint_holds_no_test_information(trained):
