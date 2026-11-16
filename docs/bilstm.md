@@ -35,13 +35,23 @@ Embeddings are randomly initialised and trained from scratch (no pretrained vect
 
 1. `load_processed_split(split, mode)` (from `src/preprocess.py`) gives the official train or dev split with a `text_proc` column. `mode` is `raw`, `clean` or `normalized`.
 2. `TextEncoder.fit(train_texts)` builds everything that is learned from data, **from the train split only**:
-   - word vocabulary: words seen at least `word_min_freq` (2) times, lowercased by default;
+   - word vocabulary: words seen at least `word_min_freq` (2) times, lowercased by default, plus two **reserved placeholder entries** (see "Placeholders" below);
    - character vocabulary: characters seen at least `char_min_freq` (2) times, case kept (capital letters can signal shouting);
    - `max_words` and `max_chars`: **one pair of limits shared by raw, clean and normalized** (see "Length limits" below).
 3. `encode` maps any split's tweet to ids. Anything not in the train vocabularies becomes `<unk>` (id 1). Padding is `<pad>` (id 0). An empty tweet becomes one `<unk>` word.
 4. `make_batch` pads each batch only to its own longest tweet and longest word, and the model ignores padding: packed sequences and masked pooling at the word level, and at the character level the CNN only lets convolution windows that lie fully inside a word take part in the max-pool (a word shorter than a kernel uses its single window of characters followed by zero vectors). So a word gets the same character vector whatever the batch's padding is, and a tweet gets the same logits alone or batched with others. Tests cover both (`test_char_cnn_same_word_same_vector_for_any_right_padding` and `test_whole_model_prediction_independent_of_batch_composition`).
 
 Dev and test words are never added to a vocabulary. The test split is never loaded by `train_bilstm.py` (a test checks the exact splits requested).
+
+### Placeholders (`USER`, `URL`)
+
+`src/preprocess.py` writes `USER` for a mention and `URL` for a link (in `clean` and `normalized` mode). The word vocabulary reserves **ids 2 and 3 for exactly these two words** (`<pad>`=0, `<unk>`=1, `USER`=2, `URL`=3, then the ordinary words), and they are exempt from lowercasing, for words and for characters. So:
+- the placeholder `USER` and the ordinary word `user` (or `User`) always have **different ids**, and likewise `URL` and `url`. Before this was fixed, lowercasing merged them: on the real train split the word `user` would have merged 12,519 placeholders with 3 genuine uses, `url` 7,823 placeholders with none;
+- ordinary words are lowercased as before and keep their own embeddings;
+- the ids 2 and 3 are the same in `raw`, `clean` and `normalized` (in `raw` there are no placeholders, so those two rows are simply unused), and do not depend on the data or on `word_min_freq`;
+- the mapping is saved inside checkpoints (the encoder stores `special_words`) and restored on loading. Checkpoint format version 2; version-1 files are rejected.
+
+Only the exact upper-case spelling counts as the placeholder. A person typing `USER` or `URL` in capitals in a tweet would still look like the placeholder after cleaning; there are no such tokens in the raw train split, and avoiding it entirely would need a different placeholder in `src/preprocess.py`, which was left unchanged.
 
 ### Length limits (same for all three modes)
 
@@ -88,7 +98,15 @@ python -m src.train_bilstm --mode normalized --limit 500 --set epochs=2
 python -m src.train_bilstm --data-root data/raw --mode normalized --seeds 42 43 44
 ```
 
-Checkpoint options: checkpoints are saved by default; `--no-checkpoints` turns this off. A run stops **before training** if a checkpoint file for the same run name and seed already exists (so a good model is never replaced by accident); use another `--run-name` or `--overwrite-checkpoints`.
+Checkpoints are saved by default; `--no-checkpoints` turns this off.
+
+### Existing results are protected
+
+- **Check before training:** a run lists every file it will write (the scores JSON, the predictions and the checkpoint of each seed) and the log rows of its run name and seed. If any of them exists, it stops **before training** with a `FileExistsError` that names them all, and writes nothing. Use another `--run-name` to keep both, or `--overwrite` to replace.
+- **One partly existing output blocks the whole run**, including a multi-seed run, so you never get a mixture of old and new seeds. Because the scores JSON belongs to the run, adding seeds later needs a new `--run-name`, not the old one.
+- **All or nothing:** the run writes into a hidden `.staging_*` folder and publishes it only after **all seeds** finished. If a seed crashes, or you press Ctrl+C, nothing existing is touched, no half-written file appears, and the finished work is kept in `<out-dir>/failed_runs/<run>_<timestamp>/` (delete it when you no longer need it). Re-running the same command afterwards needs no `--overwrite`, because nothing was published.
+- **Overwrite never deletes:** with `--overwrite`, the old files are moved to `<out-dir>/archive/<timestamp>/` (same sub-paths) and the new ones take their place. Files in `archive/` and `failed_runs/` are generated by the script; do not commit them (checkpoints are already git-ignored).
+- **The log is append-only:** `experiment_log.csv` is never edited or truncated: new rows are added with an atomic swap, so existing rows and their hand-written lessons stay byte for byte. Rows written by this script start their notes with `run=<run name>;`, which is how a run finds its own earlier rows. After `--overwrite` the new rows say `rerun=yes`, and the older rows remain as history (the last one is current).
 
 Use the same `--set` values for all three modes. For a fair comparison do not tune hyperparameters separately per mode.
 
@@ -133,7 +151,7 @@ Loading warns if the Hinglish dictionary changed since training, because new tex
 
 - The full experiments have not been run on the real data yet. Only small smoke runs (500 tweets, 2 epochs) were done, and their scores mean nothing. The tests use a small synthetic dataset in the real CoNLL format.
 - Reproducibility is verified on CPU (identical results across separate processes). On a GPU, some CUDA operations (for example embedding backward) can vary slightly between runs, so rely on the mean and spread over seeds.
-- Log, prediction and scores files of an earlier run with the same name are still overwritten or appended to without a warning; only checkpoints are protected.
+- Output protection covers what this script writes. It cannot protect a file that someone edits or deletes by hand, and it only recognises log rows that carry the `run=<name>;` prefix, so rows written by an older version of the script are not detected.
 - Embeddings are trained from scratch; pretrained Hinglish or multilingual vectors could help but are not used.
 - No hyperparameter search beyond the defaults; no class weighting.
 - The test-set run is not implemented; add it only after the final models are frozen.
