@@ -4,6 +4,7 @@ import pytest
 from src.bilstm_data import (
     LABEL2ID,
     PAD_ID,
+    PLACEHOLDER_WORDS,
     UNK_ID,
     SentimentDataset,
     TextEncoder,
@@ -11,6 +12,7 @@ from src.bilstm_data import (
     derive_length,
     make_batch,
 )
+from src.preprocess import PRESETS, preprocess_text
 
 
 # ----------------------------------------------------------------- Vocab ----
@@ -143,6 +145,96 @@ def test_encoder_round_trips_through_plain_python_dict():
     enc2 = TextEncoder.from_dict(d)
     assert enc2.to_dict() == d
     for t in ("yaar bahut achha", "Mast YAAR 😂 unseenword", "", "x" * 30):
+        assert enc2.encode(t) == enc.encode(t)
+
+
+# ---- review issue I4: the placeholders USER / URL must not collide with the ordinary words user / url ----
+SPECIAL_IDS = {"USER": 2, "URL": 3}  # reserved right after <pad>=0 and <unk>=1
+
+
+def test_placeholder_words_are_exactly_what_preprocessing_writes():
+    out = preprocess_text("RT @ bob see https // t . co / abc")
+    assert out.split() == ["USER", "see", "URL"]
+    assert PLACEHOLDER_WORDS == ("USER", "URL")
+
+
+@pytest.mark.parametrize("texts,min_freq", [
+    (["a b c"], 1),                       # data with no placeholder at all (like raw mode)
+    (["USER URL x x"], 1),                # data with both
+    (["USER x x y y"], 5),                # placeholder rarer than min_freq: still reserved
+    ([], 1),                              # no data
+])
+def test_placeholders_have_reserved_ids_whatever_the_data(texts, min_freq):
+    enc = TextEncoder.fit(texts, word_min_freq=min_freq, char_min_freq=1)
+    assert enc.word_vocab.itos[:4] == ["<pad>", "<unk>", "USER", "URL"]
+    assert {w: enc.word_vocab.stoi[w] for w in PLACEHOLDER_WORDS} == SPECIAL_IDS
+
+
+def test_placeholder_and_ordinary_word_get_different_ids():
+    enc = TextEncoder.fit(["USER user URL url User Url the"], word_min_freq=1, char_min_freq=1)
+    (w_user, w_user2, w_url, w_url2, w_User, w_Url, w_the), _ = enc.encode("USER user URL url User Url the")
+    assert (w_user, w_url) == (2, 3)                       # placeholders
+    assert w_user2 == w_User and w_url2 == w_Url            # ordinary words are lowercased together ...
+    assert len({w_user, w_user2, w_url, w_url2, w_the}) == 5  # ... and every one has its own id
+    assert min(w_user2, w_url2, w_the) >= 4                 # ordinary words come after the reserved ids
+
+
+def test_a_real_user_word_never_maps_to_the_placeholder():
+    """Before the fix, lowercasing made the placeholder `USER` and a dev word `user` share one id."""
+    enc = TextEncoder.fit(["USER hello USER hello URL"], word_min_freq=1, char_min_freq=1)
+    assert "user" not in enc.word_vocab  # the placeholder was not lowercased into the word `user`
+    assert enc.encode("user")[0] == [UNK_ID]  # an unseen ordinary word is unknown, not USER
+    assert enc.encode("USER")[0] == [2] and enc.encode("url")[0] == [UNK_ID] and enc.encode("URL")[0] == [3]
+
+
+def test_placeholders_are_not_lowercased_for_characters_either():
+    enc = TextEncoder.fit(["USER user"], word_min_freq=1, char_min_freq=1, lowercase_chars=True)
+    (_, _), (c_placeholder, c_word) = enc.encode("USER user")
+    assert c_placeholder != c_word  # upper-case characters are kept for the placeholder
+    assert c_word == enc.encode("User")[1][0]  # an ordinary word is lowercased as before
+
+
+def test_placeholders_stay_distinct_when_word_lowercasing_is_off():
+    enc = TextEncoder.fit(["USER user"], word_min_freq=1, char_min_freq=1, lowercase_words=False)
+    assert enc.word_vocab.itos[:4] == ["<pad>", "<unk>", "USER", "URL"]
+    assert enc.encode("USER user")[0][0] == 2 and enc.encode("USER user")[0][1] > 3
+
+
+def test_special_words_are_exempt_from_min_freq_and_max_size_and_validated():
+    v = Vocab.build([["USER", "a", "a", "b"]], min_freq=2, max_size=1, specials=["USER", "URL"])
+    assert v.itos == ["<pad>", "<unk>", "USER", "URL", "a"]
+    with pytest.raises(ValueError):
+        Vocab.build([["a"]], specials=["x", "x"])
+    with pytest.raises(ValueError):
+        Vocab.build([["a"]], specials=["<unk>"])
+
+
+RAW_TWEETS = ["RT @ bob the user guide is good https // t . co / abc", "see the url and the User page https // t . co / x",
+              "kya haal hai @ amit bhai"]
+
+
+@pytest.mark.parametrize("mode", list(PRESETS))
+def test_placeholder_handling_is_identical_in_raw_clean_and_normalized(mode):
+    texts = [preprocess_text(t, **PRESETS[mode]) for t in RAW_TWEETS]
+    enc = TextEncoder.fit(texts, word_min_freq=1, char_min_freq=1)
+    assert {w: enc.word_vocab.stoi[w] for w in PLACEHOLDER_WORDS} == SPECIAL_IDS  # same ids in every mode
+    user, url = enc.word_vocab.stoi["user"], enc.word_vocab.stoi["url"]  # the ordinary words are in the vocabulary ...
+    assert user not in (2, 3) and url not in (2, 3) and user != url        # ... with their own ids
+    if mode == "raw":
+        assert "USER" not in " ".join(texts).split()  # raw text has no placeholders; the ids are simply unused
+    else:
+        words = enc.encode(texts[0])[0]
+        assert words[0] == 2 and words[-1] == 3  # "USER ... URL": mention and link map to the reserved ids
+        assert user in words and 2 not in words[1:] and 3 not in words[:-1]  # the word "user" kept its own id
+
+
+def test_encoder_serialization_keeps_placeholder_mapping():
+    enc = TextEncoder.fit(["USER user URL url the"], word_min_freq=1, char_min_freq=1)
+    d = enc.to_dict()
+    assert d["special_words"] == ["USER", "URL"] and d["word_itos"][:4] == ["<pad>", "<unk>", "USER", "URL"]
+    enc2 = TextEncoder.from_dict(d)
+    assert enc2.special_words == ("USER", "URL") and enc2.to_dict() == d
+    for t in ("USER user URL url", "User Url the unseen"):
         assert enc2.encode(t) == enc.encode(t)
 
 

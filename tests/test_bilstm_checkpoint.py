@@ -8,9 +8,9 @@ torch = pytest.importorskip("torch")
 
 import src.bilstm_checkpoint as ck  # noqa: E402
 from src.bilstm_checkpoint import checkpoint_path, load_checkpoint  # noqa: E402
-from src.bilstm_data import PLACEHOLDER_WORDS  # noqa: E402
+from src.bilstm_data import PLACEHOLDER_WORDS, TextEncoder  # noqa: E402
 from src.metrics import compute_metrics  # noqa: E402
-from src.preprocess import PRESETS, load_processed_split  # noqa: E402
+from src.preprocess import PRESETS, load_processed_split, preprocess_text  # noqa: E402
 from src.train_bilstm import BiLSTMConfig, main, run_experiment  # noqa: E402
 from tests.synthetic_conll import SMALL  # noqa: E402
 
@@ -126,6 +126,44 @@ def test_checkpoint_holds_no_test_information(trained):
     assert set(payload) == set(ck.REQUIRED_KEYS)
     assert payload["labels"] == ["negative", "neutral", "positive"]
     json.dumps({k: v for k, v in payload.items() if k != "model_state"})  # everything but the weights is plain data
+
+
+# ---- review issue I4: the placeholder / ordinary-word mapping survives saving and loading ----
+def test_checkpoint_preserves_placeholder_and_ordinary_word_ids(tmp_path):
+    import pandas as pd
+
+    from src.preprocess import preprocess_frame
+
+    texts = ["RT @ bob the user guide is good https // t . co / abc", "see the url and the User page https // t . co / x",
+             "kya haal hai @ amit bhai bahut accha"] * 12
+    df = pd.DataFrame({"uid": range(len(texts)), "label": ["positive", "negative", "neutral"] * 12, "text": texts})
+    tr, dv = preprocess_frame(df, "normalized"), preprocess_frame(df.iloc[:9], "normalized")
+    out = tmp_path / "results"
+    run_experiment(tr, dv, BiLSTMConfig(**{**CFG, "epochs": 1}), [3], out_dir=out, verbose=False)
+
+    ckpt = load_checkpoint(checkpoint_path(out, "bilstm_normalized", 3))
+    stoi = ckpt.encoder.word_vocab.stoi
+    assert ckpt.encoder.word_vocab.itos[:4] == ["<pad>", "<unk>", "USER", "URL"]  # reserved ids after loading
+    assert (stoi["USER"], stoi["URL"]) == (2, 3) and ckpt.encoder.special_words == ("USER", "URL")
+    user, url = stoi["user"], stoi["url"]  # the ordinary words are in the vocabulary with ids of their own
+    assert len({2, 3, user, url}) == 4 and min(user, url) >= 4
+    assert ckpt.encoder.encode("USER user URL url User")[0] == [2, user, 3, url, user]
+    # the mapping equals what a fresh fit on the same train data gives, i.e. nothing changed through save + load
+    fresh = TextEncoder.fit(list(tr["text_proc"]), word_min_freq=1, char_min_freq=1,
+                            max_words=ckpt.meta["limits"]["max_words"], max_chars=ckpt.meta["limits"]["max_chars"])
+    assert fresh.to_dict() == ckpt.encoder.to_dict()
+    # inference from original tweets: a mention becomes the reserved USER id, the word "user" does not
+    assert ckpt.encoder.encode(preprocess_text("@ a user"))[0] == [2, user]
+    assert set(ckpt.predict_texts(["@ a the user", "https // t . co / q the url"], preprocess=True)) <= {
+        "negative", "neutral", "positive"}
+
+
+def test_checkpoints_of_the_previous_format_are_rejected_not_silently_misread(trained, tmp_path):
+    payload = torch.load(checkpoint_path(trained["out"], "bilstm_normalized", 42), weights_only=True)
+    payload["format_version"] = 1  # written before the placeholder ids were reserved
+    torch.save(payload, tmp_path / "v1.pt")
+    with pytest.raises(ValueError, match="unsupported"):
+        load_checkpoint(tmp_path / "v1.pt")
 
 
 # ----------------------------------------------------------- loader safety ----
