@@ -22,16 +22,24 @@ Outputs (under results/ unless --out-dir is given):
   experiment_log.csv                         one appended row per seed
   checkpoints/bilstm_<run>_seed<N>.pt        best-dev-epoch model + vocabularies + config + metadata
                                              (src.bilstm_checkpoint; git-ignored)
+
+Existing results are protected (see `run_experiment`): the run stops BEFORE training if any of its outputs
+(or log rows) already exist, unless --overwrite is given; outputs are staged and published only after all
+seeds finished, so a failed run never touches earlier results; --overwrite moves old files to
+<out-dir>/archive/<timestamp>/ instead of deleting them; experiment_log.csv is append-only.
 """
 from __future__ import annotations
 
 import argparse
 import copy
 import csv
+import io
 import json
+import os
+import shutil
 import time
 from dataclasses import asdict, dataclass, field, fields, replace
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import List, Optional
 
@@ -289,86 +297,189 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: BiLSTMConf
 
 # ---------------------------------------------------- experiment + logging ----
 LOG_HEADER = ["date", "who", "model", "data_version", "settings", "seed", "dev_score", "notes", "lesson_learned"]
+LOG_NAME = "experiment_log.csv"
+
+
+# ---- output protection (never overwrite earlier results by accident) ----
+def append_log_rows(path: Path, rows: List[list]) -> None:
+    """Append rows to experiment_log.csv without ever changing its existing bytes.
+
+    The new content (old bytes + new rows) is written to a temporary file next to the log and swapped in
+    with os.replace, so an interruption cannot leave a truncated or half-written log. The header is written
+    only if the file does not exist yet. Existing rows are never edited or removed."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    old = path.read_bytes() if path.exists() else b""
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf)  # default CRLF line ending, the same as the existing log
+    if not old:
+        w.writerow(LOG_HEADER)
+    for r in rows:
+        w.writerow(r)
+    prefix = old if (not old or old.endswith(b"\n")) else old + b"\r\n"
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_bytes(prefix + buf.getvalue().encode("utf-8"))
+    os.replace(tmp, path)
 
 
 def log_experiment(path: Path, row: list) -> None:
     """Append one row to experiment_log.csv (creating it with its header if missing)."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    new = not path.exists()
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        if new:
-            w.writerow(LOG_HEADER)
-        w.writerow(row)
+    append_log_rows(path, [row])
+
+
+def log_has_run(path: Path, run_name: str, seed: int) -> bool:
+    """True if experiment_log.csv already holds a row written by run `run_name` for `seed`
+    (the notes of every row written by this script start with `run=<run_name>;`)."""
+    path = Path(path)
+    if not path.exists():
+        return False
+    key = f"run={run_name};"
+    with open(path, encoding="utf-8", newline="") as f:
+        return any(r.get("seed") == str(seed) and (r.get("notes") or "").startswith(key) for r in csv.DictReader(f))
+
+
+def prediction_path(out_dir, run_name: str, seed: int) -> Path:
+    return Path(out_dir) / "predictions" / f"bilstm_{run_name}_seed{seed}_dev.csv"
+
+
+def scores_path(out_dir, run_name: str) -> Path:
+    return Path(out_dir) / f"bilstm_{run_name}_dev_scores.json"
+
+
+def find_existing_outputs(out_dir, run_name: str, seeds: List[int], save_checkpoints: bool = True) -> List[str]:
+    """Everything this run would write that already exists: files, and log rows for this run name and seed."""
+    out = Path(out_dir)
+    planned = [scores_path(out, run_name)]
+    for s in seeds:
+        planned.append(prediction_path(out, run_name, s))
+        if save_checkpoints:
+            planned.append(checkpoint_path(out, run_name, s))
+    found = [str(p) for p in planned if p.exists()]
+    log = out / LOG_NAME
+    found += [f"{log} (row of run '{run_name}', seed {s})" for s in seeds if log_has_run(log, run_name, s)]
+    return found
+
+
+def _stamp() -> str:
+    return datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+
+
+def _publish(stage: Path, out_dir: Path, log_rows: List[list], overwrite: bool, stamp: str) -> List[str]:
+    """Move every staged file to the same relative place in `out_dir`, then append the log rows.
+
+    A file already at a destination is first MOVED (never deleted) to <out_dir>/archive/<stamp>/<same path>,
+    and only if overwrite=True; otherwise nothing is moved and FileExistsError is raised (this re-checks
+    right before publishing, in case something appeared while the run was training). Returns the archived paths."""
+    files = sorted(p for p in stage.rglob("*") if p.is_file())
+    dests = [out_dir / p.relative_to(stage) for p in files]
+    clash = [str(d) for d in dests if d.exists()]
+    if clash and not overwrite:
+        raise FileExistsError(f"outputs appeared while the run was training, nothing was published: {clash}")
+    archived = []
+    for src, dest in zip(files, dests):
+        if dest.exists():
+            old = out_dir / "archive" / stamp / dest.relative_to(out_dir)
+            old.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(dest, old)
+            archived.append(str(old))
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(src, dest)
+    append_log_rows(out_dir / LOG_NAME, log_rows)  # last: a log row means the run completed
+    shutil.rmtree(stage, ignore_errors=True)
+    return archived
 
 
 def run_experiment(train_df, dev_df, cfg: BiLSTMConfig, seeds: List[int], out_dir: Optional[Path] = None,
                    run_name: Optional[str] = None, who: str = "Ekta", verbose: bool = True,
-                   save_checkpoints: bool = True, overwrite_checkpoints: bool = False) -> dict:
+                   save_checkpoints: bool = True, overwrite: bool = False) -> dict:
     """Run `train_one_seed` for every seed, summarise, and (if out_dir is given) save everything.
 
     With out_dir=None nothing is written (used for tests and quick debugging).
-    With out_dir, each seed's best model is saved to <out_dir>/checkpoints/bilstm_<run>_seed<N>.pt unless
-    save_checkpoints=False. Existing checkpoint files are never overwritten silently: the run stops BEFORE
-    training (FileExistsError) unless overwrite_checkpoints=True.
     The length limits are derived once from the train split (shared by all modes) and reused for every seed.
-    Returns {"config", "limits", "per_seed": [...], "summary": {metric: {mean, std}}}.
+
+    Output protection (with out_dir):
+    - BEFORE training, every output of this run is checked (scores JSON, per-seed predictions and checkpoints,
+      and log rows of this run name and seed). If any exists, FileExistsError lists them and nothing is trained
+      or written, unless overwrite=True. Change `run_name` to keep both.
+    - The run writes into a hidden staging folder and publishes it only after ALL seeds finished, so a failure
+      or interruption never touches existing results. The staged work of a failed run is kept in
+      <out_dir>/failed_runs/<run>_<timestamp>/ (finished seeds are not lost).
+    - overwrite=True moves existing files to <out_dir>/archive/<timestamp>/ before publishing (never deletes)
+      and marks the new log rows with `rerun=yes`; old log rows stay (the log is append-only).
+    Returns {"config", "limits", "per_seed": [...], "summary": {...}, "archived": [...]}.
     """
     cfg.validate()
     run_name = run_name or f"bilstm_{cfg.mode}"
-    ckpt_files = {s: (checkpoint_path(out_dir, run_name, s) if out_dir is not None and save_checkpoints else None)
-                  for s in seeds}
-    existing = [str(p) for p in ckpt_files.values() if p is not None and p.exists()]
-    if existing and not overwrite_checkpoints:
-        raise FileExistsError(f"checkpoint(s) already exist, nothing was trained: {existing}. "
-                              "Use another --run-name, or --overwrite-checkpoints to replace them.")
+    out = Path(out_dir) if out_dir is not None else None
+    existing = find_existing_outputs(out, run_name, seeds, save_checkpoints) if out is not None else []
+    if existing and not overwrite:
+        raise FileExistsError(
+            f"outputs of run '{run_name}' already exist, nothing was trained or written:\n  - " + "\n  - ".join(existing)
+            + "\nUse another --run-name, or --overwrite to replace them "
+              "(old files are then moved to <out-dir>/archive/<timestamp>/, never deleted).")
     limits = resolve_limits(train_df, cfg)
     if verbose:
         print(f"[{run_name}] length limits shared by all modes ({limits['source']}): "
               f"max_words={limits['max_words']} max_chars={limits['max_chars']}")
-    per_seed = []
-    for seed in seeds:
-        if verbose:
-            print(f"[{run_name}] seed {seed}")
-        res = train_one_seed(train_df, dev_df, cfg, seed, verbose=verbose, limits=limits,
-                             checkpoint_file=ckpt_files[seed])
-        per_seed.append(res)
-        if out_dir is not None:
-            out_dir = Path(out_dir)
-            pdir = out_dir / "predictions"
-            pdir.mkdir(parents=True, exist_ok=True)
-            pd.DataFrame({"uid": dev_df["uid"].values, "label": dev_df["label"].values, "pred": res["pred"]}).to_csv(
-                pdir / f"bilstm_{run_name}_seed{seed}_dev.csv", index=False)
-            m = res["metrics"]
-            log_experiment(
-                out_dir / "experiment_log.csv",
-                [date.today().isoformat(), who, "bilstm word+char (cnn)", DATA_VERSIONS[cfg.mode], cfg.short(), seed,
-                 f"{m['weighted_f1']:.4f}",
-                 f"macro_f1={m['macro_f1']:.4f}; accuracy={m['accuracy']:.4f}; best_epoch={res['best_epoch']}; "
-                 f"max_words={res['max_words']}; max_chars={res['max_chars']}; "
-                 f"dev_truncated_tweets={res['truncation']['dev']['tweets']}; params={res['n_params']}; "
-                 "early-stopped on dev",
-                 ""])
-        if verbose:
-            m = res["metrics"]
-            print(f"[{run_name}] seed {seed} best epoch {res['best_epoch']}: wF1 {m['weighted_f1']:.4f} "
-                  f"macroF1 {m['macro_f1']:.4f} acc {m['accuracy']:.4f}")
 
-    summary = {}
-    for key in ("weighted_f1", "macro_f1", "accuracy"):
-        vals = np.array([r["metrics"][key] for r in per_seed])
-        summary[key] = {"mean": round(float(vals.mean()), 4),
-                        "std": round(float(vals.std(ddof=1)) if len(vals) > 1 else 0.0, 4)}
-    result = {"run_name": run_name, "config": asdict(cfg), "limits": limits, "seeds": list(seeds), "summary": summary,
-              "per_seed": [{k: v for k, v in r.items() if k != "pred"} for r in per_seed]}
-    if out_dir is not None:
-        Path(out_dir).mkdir(parents=True, exist_ok=True)
-        (Path(out_dir) / f"bilstm_{run_name}_dev_scores.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    stamp = _stamp()
+    stage = out / f".staging_{run_name}_{stamp}" if out is not None else None
+    per_seed, log_rows, archived = [], [], []
+    try:
+        if stage is not None:
+            (stage / "predictions").mkdir(parents=True)
+        for seed in seeds:
+            if verbose:
+                print(f"[{run_name}] seed {seed}")
+            res = train_one_seed(train_df, dev_df, cfg, seed, verbose=verbose, limits=limits,
+                                 checkpoint_file=checkpoint_path(stage, run_name, seed)
+                                 if stage is not None and save_checkpoints else None)
+            if res.get("checkpoint"):
+                res["checkpoint"] = str(checkpoint_path(out, run_name, seed))  # where it will be after publishing
+            per_seed.append(res)
+            m = res["metrics"]
+            if stage is not None:
+                pd.DataFrame({"uid": dev_df["uid"].values, "label": dev_df["label"].values,
+                              "pred": res["pred"]}).to_csv(prediction_path(stage, run_name, seed), index=False)
+                log_rows.append(
+                    [date.today().isoformat(), who, "bilstm word+char (cnn)", DATA_VERSIONS[cfg.mode], cfg.short(), seed,
+                     f"{m['weighted_f1']:.4f}",
+                     f"run={run_name}; " + ("rerun=yes; " if existing else "") +
+                     f"macro_f1={m['macro_f1']:.4f}; accuracy={m['accuracy']:.4f}; best_epoch={res['best_epoch']}; "
+                     f"max_words={res['max_words']}; max_chars={res['max_chars']}; "
+                     f"dev_truncated_tweets={res['truncation']['dev']['tweets']}; params={res['n_params']}; "
+                     "early-stopped on dev",
+                     ""])
+            if verbose:
+                print(f"[{run_name}] seed {seed} best epoch {res['best_epoch']}: wF1 {m['weighted_f1']:.4f} "
+                      f"macroF1 {m['macro_f1']:.4f} acc {m['accuracy']:.4f}")
+
+        summary = {}
+        for key in ("weighted_f1", "macro_f1", "accuracy"):
+            vals = np.array([r["metrics"][key] for r in per_seed])
+            summary[key] = {"mean": round(float(vals.mean()), 4),
+                            "std": round(float(vals.std(ddof=1)) if len(vals) > 1 else 0.0, 4)}
+        result = {"run_name": run_name, "config": asdict(cfg), "limits": limits, "seeds": list(seeds),
+                  "summary": summary, "per_seed": [{k: v for k, v in r.items() if k != "pred"} for r in per_seed]}
+        if stage is not None:
+            scores_path(stage, run_name).write_text(json.dumps(result, indent=2), encoding="utf-8")
+            archived = _publish(stage, out, log_rows, overwrite, stamp)
+    except BaseException:
+        if stage is not None and stage.exists():  # keep the work of a failed run; existing results stay untouched
+            failed = out / "failed_runs" / f"{run_name}_{stamp}"
+            failed.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(stage, failed)
+            print(f"[{run_name}] run did not finish; its partial outputs are kept in {failed}. "
+                  "Existing results were not touched.")
+        raise
+    result["archived"] = archived
     if verbose:
         s = summary
         print(f"[{run_name}] over seeds {list(seeds)}: wF1 {s['weighted_f1']['mean']:.4f} +/- {s['weighted_f1']['std']:.4f}, "
               f"macroF1 {s['macro_f1']['mean']:.4f} +/- {s['macro_f1']['std']:.4f}, "
               f"acc {s['accuracy']['mean']:.4f} +/- {s['accuracy']['std']:.4f}")
+        if archived:
+            print(f"[{run_name}] {len(archived)} earlier file(s) moved to {out / 'archive' / stamp}")
     return result
 
 
@@ -398,8 +509,9 @@ def main(argv=None) -> dict:
     p.add_argument("--data-root", help="folder with the SentiMix Hinglish files (default: src.data.DEFAULT_ROOT)")
     p.add_argument("--limit", type=int, help="DEBUG: use only the first N train and dev tweets; nothing is saved or logged")
     p.add_argument("--no-checkpoints", action="store_true", help="do not save the best model of each seed")
-    p.add_argument("--overwrite-checkpoints", action="store_true",
-                   help="replace existing checkpoint files (default: stop before training if any exists)")
+    p.add_argument("--overwrite", action="store_true",
+                   help="replace the outputs of an earlier run with the same run name; default: stop before training "
+                        "if any exist. Old files are moved to <out-dir>/archive/<timestamp>/, never deleted")
     args = p.parse_args(argv)
 
     cfg = BiLSTMConfig.from_json(args.config) if args.config else BiLSTMConfig()
@@ -417,7 +529,7 @@ def main(argv=None) -> dict:
         out_dir = None
         print(f"DEBUG run on {len(train_df)} train / {len(dev_df)} dev tweets: results are NOT saved or logged.")
     return run_experiment(train_df, dev_df, cfg, args.seeds, out_dir=out_dir, run_name=args.run_name, who=args.who,
-                          save_checkpoints=not args.no_checkpoints, overwrite_checkpoints=args.overwrite_checkpoints)
+                          save_checkpoints=not args.no_checkpoints, overwrite=args.overwrite)
 
 
 if __name__ == "__main__":

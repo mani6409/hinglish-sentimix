@@ -160,7 +160,7 @@ def test_existing_checkpoints_are_not_overwritten_silently(trained):
         run_experiment(tr, dv, cfg, [42, 99], out_dir=out, verbose=False)
     assert p.read_bytes() == before and not checkpoint_path(out, "bilstm_normalized", 99).exists()  # nothing written
     assert (out / "experiment_log.csv").read_text(encoding="utf-8") == log_before  # and nothing logged
-    run_experiment(tr, dv, cfg, [42], out_dir=out, verbose=False, overwrite_checkpoints=True)  # explicit opt-in works
+    run_experiment(tr, dv, cfg, [42], out_dir=out, verbose=False, overwrite=True)  # explicit opt-in works
     assert p.is_file()
 
 
@@ -183,7 +183,7 @@ def test_cli_saves_checkpoint_and_respects_flags(data_root, tmp_path):
     assert p.is_file()
     with pytest.raises(FileExistsError):
         main([*args, "--out-dir", str(out)])
-    main([*args, "--out-dir", str(out), "--overwrite-checkpoints"])
+    main([*args, "--out-dir", str(out), "--overwrite"])
     out2 = tmp_path / "out2"
     main([*args, "--out-dir", str(out2), "--no-checkpoints"])
     assert not (out2 / "checkpoints").exists()
