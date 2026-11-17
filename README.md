@@ -24,7 +24,7 @@ Mani, Monis, Ekta, Akansha
 | `reports/` | Final report |
 
 ## Setup
-Python version: **3.11** for everyone (so all installs match). Create the environment with that version, for example `python3.11 -m venv .venv`.
+Python version: **3.11** for the team (the BiLSTM evaluation was run on 3.12.5; see `requirements-bilstm.txt`) (so all installs match). Create the environment with that version, for example `python3.11 -m venv .venv`.
 
 ```bash
 python3.11 -m venv .venv
@@ -47,11 +47,42 @@ compute_metrics(y_true, y_pred)["weighted_f1"]
 - Tests: `python -m pytest -q`
 
 ## Data
-The Hinglish data is included in the repo under `data/raw/`. Source, licence and format: see `docs/data_format.md`.
+The official SemEval-2020 Task 9 Hinglish data (CC BY 4.0, Zenodo record 3974927) is included in the repository under
+`data/raw/zenodo_download/extracted/Semeval_2020_task9_data/Hinglish/`, which is where `src/data.py` looks by default.
+Source, licence and format: `docs/data_format.md`. The test labels are in a separate file and are joined by uid.
 
-## Reproducing results
-To be filled in as experiments are completed.
+## BiLSTM (word + character embeddings)
+Word embeddings plus a character CNN feed a BiLSTM with max and mean pooling. Three preprocessing modes (raw, clean, normalized) were each
+trained with seeds 42, 43, 44; everything except the mode is identical. Details: `docs/bilstm.md`.
 
+**Test results** (mean ± sample std over 3 seeds; official test set, evaluated once under `docs/bilstm_final_evaluation_protocol.md`):
+
+| Mode | Macro F1 | Weighted F1 |
+|---|---|---|
+| raw | 0.6615 ± 0.0077 | 0.6603 ± 0.0066 |
+| clean | 0.6716 ± 0.0030 | 0.6681 ± 0.0023 |
+| normalized | 0.6589 ± 0.0061 | 0.6566 ± 0.0059 |
+
+Differences between modes are small compared with seed variation and test-sampling uncertainty; see `reports/bilstm_final_analysis.md` for the
+paired bootstrap intervals, error analysis and the (partly unexplained) gap between dev and test scores. Normalization did not help.
+
+## Reproducing the BiLSTM results
+Install the BiLSTM dependencies (`pip install -r requirements-bilstm.txt`; Python 3.12.5 and CPU were used) and run from the repository root:
+
+```bash
+python -m pytest -q tests/test_bilstm_data.py tests/test_bilstm_model.py tests/test_bilstm_limits.py tests/test_bilstm_checkpoint.py tests/test_bilstm_outputs.py
+python -m src.train_bilstm --config configs/bilstm_default.json --mode clean --seeds 42 43 44     # one mode; never loads the test split
+python -m src.analyze_bilstm_results --data-root data/raw/zenodo_download/extracted/Semeval_2020_task9_data/Hinglish   # dev-set analysis
+python -m src.evaluate_bilstm_test --validate-only      # needs the nine checkpoints (not in git); reads no labels
+python -m src.analyze_bilstm_test                       # exploratory test analysis; refuses to overwrite an existing output
+```
+
+The nine checkpoints are git-ignored; their MD5 hashes are in `configs/bilstm_frozen_checkpoints.json`. The final test evaluation
+(`--confirm-final-test`) was run once and refuses to overwrite `results/bilstm_final_test/`.
+
+## References
+1. Patwa et al., SemEval-2020 Task 9: Overview of Sentiment Analysis of Code-Mixed Tweets. https://arxiv.org/abs/2008.04277
+2. Conneau et al., Unsupervised Cross-lingual Representation Learning at Scale (XLM-R). https://arxiv.org/abs/1911.02116
 ## References
 1. Patwa et al., SemEval-2020 Task 9: Overview of Sentiment Analysis of Code-Mixed Tweets. https://arxiv.org/abs/2008.04277
 2. Conneau et al., Unsupervised Cross-lingual Representation Learning at Scale (XLM-R). https://arxiv.org/abs/1911.02116
