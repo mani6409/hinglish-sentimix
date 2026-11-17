@@ -1,7 +1,16 @@
-# data and models are too large for Git; document where to download them instead
+# Only the Hinglish SemEval-2020 Task 9 files (CC-BY 4.0, about 9 MB) are committed, as the course requires.
+# Everything else under data/ (zip copy, Spanglish, processed files) stays out of Git.
 data/raw/*
-data/processed/*
 !data/raw/.gitkeep
+!data/raw/zenodo_download/
+data/raw/zenodo_download/*
+!data/raw/zenodo_download/extracted/
+data/raw/zenodo_download/extracted/*
+!data/raw/zenodo_download/extracted/Semeval_2020_task9_data/
+data/raw/zenodo_download/extracted/Semeval_2020_task9_data/*
+!data/raw/zenodo_download/extracted/Semeval_2020_task9_data/README.txt
+!data/raw/zenodo_download/extracted/Semeval_2020_task9_data/Hinglish/
+data/processed/*
 !data/processed/.gitkeep
 checkpoints/
 *.pt

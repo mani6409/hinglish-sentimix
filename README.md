@@ -15,7 +15,7 @@ Mani, Monis, Ekta, Akansha
 ## Repository layout
 | Path | Purpose |
 |---|---|
-| `data/raw/`, `data/processed/` | Original data and raw/normalised versions (not committed) |
+| `data/raw/` | Hinglish SemEval-2020 Task 9 data (committed, CC-BY 4.0); processed versions are generated, not committed |
 | `notebooks/` | EDA and result visualisation |
 | `src/` | Preprocessing, metrics, models, training script |
 | `configs/` | One file per experiment recording its settings |
@@ -47,7 +47,7 @@ compute_metrics(y_true, y_pred)["weighted_f1"]
 - Tests: `python -m pytest -q`
 
 ## Data
-Download the SentiMix Hinglish data and place it in `data/raw/`. Exact source and format: see `docs/` (to be added).
+The Hinglish data is included in the repo under `data/raw/`. Source, licence and format: see `docs/data_format.md`.
 
 ## Reproducing results
 To be filled in as experiments are completed.

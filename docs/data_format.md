@@ -4,7 +4,7 @@
 - Official release: Zenodo record 3974927 (https://zenodo.org/record/3974927), file `Semeval_2020_task9_data.zip` (2,807,728 bytes), licence CC-BY 4.0.
 - MD5 checksum: `4d93553c213b3a966b6d55b7a7c03be7` (verified after download).
 - Task site: https://ritual-uh.github.io/sentimix2020/
-- Data is not committed to Git (see `.gitignore`). Each teammate downloads it and extracts it into `data/raw/`.
+- The Hinglish files and the dataset's own `README.txt` are committed under `data/raw/zenodo_download/extracted/Semeval_2020_task9_data/` (CC-BY 4.0 allows redistribution with attribution; please cite the task paper, see that README). The zip and the Spanglish files are not committed. The commands below are only needed to re-download the original.
 
 ```bash
 mkdir -p data/raw/zenodo_download && cd data/raw/zenodo_download
