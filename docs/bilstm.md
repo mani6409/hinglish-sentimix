@@ -147,6 +147,9 @@ Loading warns if the Hinglish dictionary changed since training, because new tex
 - **Nothing here shows that normalization helps.** It only provides the tool to measure it.
 - **Reference point:** the TF-IDF baselines score about 0.61 weighted F1 on dev (`docs/baselines_tfidf.md`).
 
+## Comparison with the TF-IDF baseline (development set)
+The BiLSTM does not beat the TF-IDF + logistic regression baseline (`docs/baselines_tfidf.md`) on the development set. Weighted F1 on dev: BiLSTM raw 0.6105, clean 0.6118, normalized 0.6071 (means over seeds 42, 43, 44; sample standard deviations 0.0041, 0.0015, 0.0007); TF-IDF 0.611 (word 1-2), 0.613 (character 2-5), 0.612 (word + character). The differences are well inside the typical sampling error of about 0.009 on 3,000 tweets, so the two model families are indistinguishable on this metric. TF-IDF has not been run on the test set, so no test-set comparison is made here.
+
 ## Limitations and pending work
 
 - The full experiments have not been run on the real data yet. Only small smoke runs (500 tweets, 2 epochs) were done, and their scores mean nothing. The tests use a small synthetic dataset in the real CoNLL format.
