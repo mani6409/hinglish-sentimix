@@ -1,0 +1,99 @@
+{
+  "description": "Frozen BiLSTM checkpoints for the single official test evaluation. Edit only with team approval; see docs/bilstm_final_evaluation_protocol.md.",
+  "protocol": "docs/bilstm_final_evaluation_protocol.md",
+  "frozen_date": "2026-11-16",
+  "source_commit": "48b325e",
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "expected": {
+    "n_test": 3000,
+    "max_words": 56,
+    "max_chars": 18,
+    "train_size": 14000,
+    "dev_size": 3000,
+    "format_version": 2,
+    "selected_on": "dev weighted_f1",
+    "variants_sha256": "8b4aa6924dc8a951aed79fbd8da5506d4c2a371dd126e71a8507836d2583d8ad"
+  },
+  "checkpoints": [
+    {
+      "mode": "raw",
+      "seed": 42,
+      "path": "results/checkpoints/bilstm_full_raw_s42_seed42.pt",
+      "md5": "45f166e48d73532f89c3e044c54c80fc",
+      "size": 8025085
+    },
+    {
+      "mode": "raw",
+      "seed": 43,
+      "path": "results/checkpoints/bilstm_full_raw_s43_seed43.pt",
+      "md5": "540987f2af85d646c368572f0b07fd61",
+      "size": 8025085
+    },
+    {
+      "mode": "raw",
+      "seed": 44,
+      "path": "results/checkpoints/bilstm_full_raw_s44_seed44.pt",
+      "md5": "a8f54c8cd8836155c8d7ea35b6806895",
+      "size": 8025085
+    },
+    {
+      "mode": "clean",
+      "seed": 42,
+      "path": "results/checkpoints/bilstm_full_clean_s42_seed42.pt",
+      "md5": "190bc0c38b5da17fd4515439f30f0d32",
+      "size": 6865645
+    },
+    {
+      "mode": "clean",
+      "seed": 43,
+      "path": "results/checkpoints/bilstm_full_clean_s43_seed43.pt",
+      "md5": "a481a1a2eb7159ad8ee7bfbe996dd6ad",
+      "size": 6865645
+    },
+    {
+      "mode": "clean",
+      "seed": 44,
+      "path": "results/checkpoints/bilstm_full_clean_s44_seed44.pt",
+      "md5": "65d71b5961eeaff0e07141b1e2023a67",
+      "size": 6865645
+    },
+    {
+      "mode": "normalized",
+      "seed": 42,
+      "path": "results/checkpoints/bilstm_full_normalized_s42_seed42.pt",
+      "md5": "afc64d40cec38a52d40672a23c3894fa",
+      "size": 6836645
+    },
+    {
+      "mode": "normalized",
+      "seed": 43,
+      "path": "results/checkpoints/bilstm_full_normalized_s43_seed43.pt",
+      "md5": "d1b162e07e1d08fbddbd6ad619b5affb",
+      "size": 6836645
+    },
+    {
+      "mode": "normalized",
+      "seed": 44,
+      "path": "results/checkpoints/bilstm_full_normalized_s44_seed44.pt",
+      "md5": "d56fd14f34725e74d9dc32e403a4f912",
+      "size": 6836645
+    }
+  ],
+  "test_files": {
+    "source": "official Zenodo record 3974927, Semeval_2020_task9_data.zip (zip MD5 4d93553c213b3a966b6d55b7a7c03be7); hashes below are from that archive, not from the local copies",
+    "unlabeled": {
+      "file": "Hinglish_test_unalbelled_conll_updated.txt",
+      "md5": "4706975d6fa025634c176111d3271487",
+      "size": 810391
+    },
+    "labels": {
+      "file": "Hinglish_test_labels.txt",
+      "md5": "60199636a5da7e8195f0db359332163e",
+      "size": 46222
+    }
+  }
+}
