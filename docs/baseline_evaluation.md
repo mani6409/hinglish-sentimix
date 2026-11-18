@@ -85,7 +85,7 @@ Reading:
 ## 6. For the team
 - **Second reader (Ekta):** fill `results/error_categories_reviewer2_template.csv` without looking at `error_categories_manual.csv`, save it under a new name, and run `python -m src.label_agreement <file>`. Report raw agreement and Cohen's kappa in the report.
 - **Everyone:** when your model's dev predictions are ready, save them as `results/predictions/<model>_dev.csv` (columns `uid,label,pred`). `python -m src.cmi_evaluation` then scores them by CMI, and this script can be pointed at them.
-- **Experiment log:** the log has one score column (weighted F1). Macro F1 and accuracy per model are in `results/baseline_scores.csv`. The log's columns will be extended after PR #12 (which appends rows to it) is merged, to avoid a merge conflict.
+- **Experiment log:** `results/experiment_log.csv` now has `dev_weighted_f1`, `dev_macro_f1` and `dev_accuracy` columns for all 13 runs (majority floor, three TF-IDF models, nine BiLSTM runs). They are recomputed from the dev prediction files by `python -m src.log_metrics`, which also checks them against the existing `dev_score` column (weighted F1) and against the macro F1 and accuracy written in the BiLSTM rows' notes; all 13 agree. The original columns are unchanged. After logging a new experiment, rerun the script to fill the new columns for that row.
 
 ## Limits
 - Dev set only; one model family; one reader for the hand categories.
