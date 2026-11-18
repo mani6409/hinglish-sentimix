@@ -1,0 +1,7 @@
+flag,pct_of_errors,pct_of_correct,p_value
+negation_word,37.4893,30.049,0.0
+spelling_variant,13.8435,12.0305,0.163
+truncated,9.2863,9.5264,0.8768
+url,56.4058,56.8862,0.8252
+repeated_letters,4.2132,5.2259,0.2409
+has_emoji,16.595,19.8694,0.028
