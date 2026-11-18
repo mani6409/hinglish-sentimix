@@ -98,12 +98,14 @@ python -m src.evaluate_bilstm_test --confirm-final-test     # the one real evalu
 The official test split has **not** been used for training, early stopping, vocabulary building, hyper-parameter choice, preprocessing design or model selection. It has, however, been read for *descriptive* purposes before this evaluation, and this must be stated in any report:
 
 - **Team EDA (`src/eda_part1.py`, `src/eda_part2.py`)** loaded the test split together with its labels. It computed the test class distribution (900 negative / 1,100 neutral / 1,000 positive), tweet-length and language-tag statistics, text overlap between the splits (including one text shared by train and test), and the code-mixing index (CMI) of every test tweet. The per-tweet CMI file `results/cmi_per_tweet.csv` therefore contains test rows with their gold labels. These numbers appear in `docs/eda_part1.md`, `docs/eda_part2.md` and the `results/eda_part*_stats.json` files.
-- **Loader and data checks** (including checks run by the AI assistant during setup of this repository) loaded the test split once to confirm that the labels join by uid, counted labels and uid overlaps, and verified file sizes. No model was run on test data.
+- **Loader and data checks** (including checks run during the setup of this repository) loaded the test split once to confirm that the labels join by uid, counted labels and uid overlaps, and verified file sizes. No model was run on test data.
 - **Unit tests** (`tests/test_data_seed.py`, `tests/test_preprocess.py`) load the test split with labels to check counts and uids.
 - The BiLSTM training script never loads the test split (`src/train_bilstm.py` requests only train and dev; a test enforces this), and no hyper-parameter search was ever run: the configuration file was committed before training and never changed.
 - Other team members' models (transformers, LLM) are outside this protocol; their own test access is theirs to document.
 
 Because the class distribution and some corpus statistics of the test set were known beforehand, these descriptive facts could in principle have shaped expectations; they did not influence any model or setting.
+
+**Revision note (2026-11-18, pull-request review).** The wording of one sentence in this section was clarified. No rule, checkpoint, hash, metric or result was changed.
 
 ## 9. Limitations
 
