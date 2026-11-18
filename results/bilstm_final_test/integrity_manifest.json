@@ -1,0 +1,102 @@
+{
+  "protocol": "docs/bilstm_final_evaluation_protocol.md",
+  "frozen_manifest": "C:\\Users\\ektas\\OneDrive\\Desktop\\DL\\hinglish-sentimix\\configs\\bilstm_frozen_checkpoints.json",
+  "frozen_manifest_md5": "4be1fdf3f9ec45fde59737db9a0e73d6",
+  "environment": {
+    "python": "3.12.5",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "scikit_learn": "1.9.1",
+    "torch": "2.15.0+cpu",
+    "torch_version_recorded_in_checkpoints": [
+      "2.15.0+cpu"
+    ]
+  },
+  "events": [
+    {
+      "event": "start",
+      "utc": "2026-11-17T02:28:48+00:00",
+      "mode": "final-evaluation",
+      "manifest": "C:\\Users\\ektas\\OneDrive\\Desktop\\DL\\hinglish-sentimix\\configs\\bilstm_frozen_checkpoints.json"
+    },
+    {
+      "event": "hashes_verified_before_inference",
+      "utc": "2026-11-17T02:28:49+00:00",
+      "checkpoints": 9,
+      "unlabeled_test_file": true,
+      "labels_file_size_only": true
+    },
+    {
+      "event": "checkpoints_loaded_and_mapped",
+      "utc": "2026-11-17T02:28:52+00:00",
+      "runs": 9
+    },
+    {
+      "event": "unlabeled_test_parsed",
+      "utc": "2026-11-17T02:28:52+00:00",
+      "tweets": 3000
+    },
+    {
+      "event": "predictions_saved_and_validated",
+      "utc": "2026-11-17T02:29:42+00:00",
+      "files": 9
+    },
+    {
+      "event": "labels_read_after_predictions_were_saved",
+      "utc": "2026-11-17T02:29:42+00:00",
+      "labels": 3000
+    },
+    {
+      "event": "metrics_computed",
+      "utc": "2026-11-17T02:29:43+00:00"
+    },
+    {
+      "event": "hashes_verified_after_evaluation",
+      "utc": "2026-11-17T02:29:43+00:00",
+      "files": 11
+    },
+    {
+      "event": "outputs_written",
+      "utc": "2026-11-17T02:29:46+00:00",
+      "figures": 4
+    }
+  ],
+  "inputs": {
+    "md5_before_and_after_identical": true,
+    "md5": {
+      "checkpoint raw seed 42": "45f166e48d73532f89c3e044c54c80fc",
+      "checkpoint raw seed 43": "540987f2af85d646c368572f0b07fd61",
+      "checkpoint raw seed 44": "a8f54c8cd8836155c8d7ea35b6806895",
+      "checkpoint clean seed 42": "190bc0c38b5da17fd4515439f30f0d32",
+      "checkpoint clean seed 43": "a481a1a2eb7159ad8ee7bfbe996dd6ad",
+      "checkpoint clean seed 44": "65d71b5961eeaff0e07141b1e2023a67",
+      "checkpoint normalized seed 42": "afc64d40cec38a52d40672a23c3894fa",
+      "checkpoint normalized seed 43": "d1b162e07e1d08fbddbd6ad619b5affb",
+      "checkpoint normalized seed 44": "d56fd14f34725e74d9dc32e403a4f912",
+      "test file (unlabeled)": "4706975d6fa025634c176111d3271487",
+      "test file (labels)": "60199636a5da7e8195f0db359332163e"
+    },
+    "labels_file_first_read_after_predictions_saved": true
+  },
+  "outputs_md5": {
+    "bilstm_final_test_report.md": "748b1df5ecda9dc835e40967858d1514",
+    "confusion_matrices.json": "22f7b584376c387632ded253897d4c7d",
+    "figures/bilstm_final_test_confusion_all_modes.png": "ab64306beddf8e6e7bac109f3dc4a890",
+    "figures/bilstm_final_test_confusion_clean.png": "6c6179d8fbeaa9298c12bc3f90151b85",
+    "figures/bilstm_final_test_confusion_normalized.png": "0ec7c8dd90132687e0307abe677e869e",
+    "figures/bilstm_final_test_confusion_raw.png": "a7ee93660b7f7cd3b25be723a0f4573c",
+    "metrics_per_run.json": "970da7a3dfb68f8e69d10f409ff348f0",
+    "metrics_summary.json": "67a185095f48f2b0865745e508bb9024",
+    "predictions/bilstm_final_test_clean_seed42_predictions.csv": "7d587fc1962467608cef2485414b4ea3",
+    "predictions/bilstm_final_test_clean_seed43_predictions.csv": "e550f2357258f48c10f429def94e1f1e",
+    "predictions/bilstm_final_test_clean_seed44_predictions.csv": "54548eb2afa2b4f4aefa9c25575570bd",
+    "predictions/bilstm_final_test_normalized_seed42_predictions.csv": "15f1e16a32d2212f56ccd58bc07d986e",
+    "predictions/bilstm_final_test_normalized_seed43_predictions.csv": "8d9e7ec16163af48720079b612a8e9e5",
+    "predictions/bilstm_final_test_normalized_seed44_predictions.csv": "99b9d36014b12abb6e1f405d4524b5f8",
+    "predictions/bilstm_final_test_raw_seed42_predictions.csv": "6bdf9b0bd777d20c54065b81340dcc1c",
+    "predictions/bilstm_final_test_raw_seed43_predictions.csv": "afc48b4b77bc3d6561d848c1b3dea9f0",
+    "predictions/bilstm_final_test_raw_seed44_predictions.csv": "5c9ae856065f0f59bd6c678d168b262d",
+    "predictions_manifest.json": "38fb5af6fc861ea77d039d7b261692be"
+  }
+}

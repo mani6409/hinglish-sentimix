@@ -1,0 +1,229 @@
+{
+  "run_name": "full_raw_s42",
+  "config": {
+    "mode": "raw",
+    "use_word": true,
+    "use_char": true,
+    "word_dim": 100,
+    "char_dim": 32,
+    "char_filters": 32,
+    "char_kernels": [
+      2,
+      3,
+      4
+    ],
+    "hidden_size": 128,
+    "num_layers": 1,
+    "dropout": 0.4,
+    "pooling": "maxmean",
+    "word_min_freq": 2,
+    "char_min_freq": 2,
+    "lowercase_words": true,
+    "lowercase_chars": false,
+    "max_words": null,
+    "max_chars": null,
+    "chars_percentile": 99.9,
+    "batch_size": 64,
+    "epochs": 20,
+    "lr": 0.001,
+    "weight_decay": 1e-05,
+    "grad_clip": 5.0,
+    "patience": 4,
+    "device": "auto"
+  },
+  "limits": {
+    "max_words": 56,
+    "max_chars": 18,
+    "source": "max over raw/clean/normalized of train-derived limits",
+    "per_mode": {
+      "raw": {
+        "max_words": 56,
+        "max_chars": 16
+      },
+      "clean": {
+        "max_words": 53,
+        "max_chars": 18
+      },
+      "normalized": {
+        "max_words": 53,
+        "max_chars": 17
+      }
+    }
+  },
+  "seeds": [
+    42
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6058,
+      "std": 0.0
+    },
+    "macro_f1": {
+      "mean": 0.6078,
+      "std": 0.0
+    },
+    "accuracy": {
+      "mean": 0.604,
+      "std": 0.0
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "best_epoch": 9,
+      "epochs_run": 13,
+      "metrics": {
+        "weighted_f1": 0.6058443934666845,
+        "macro_f1": 0.6078167548755783,
+        "accuracy": 0.604,
+        "per_class": {
+          "negative": {
+            "precision": 0.7018072289156626,
+            "recall": 0.5235955056179775,
+            "f1": 0.5997425997425997,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5108695652173914,
+            "recall": 0.625,
+            "f1": 0.562200956937799,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6705020920502092,
+            "recall": 0.6527494908350305,
+            "f1": 0.6615067079463365,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          466,
+          375,
+          49
+        ],
+        [
+          157,
+          705,
+          266
+        ],
+        [
+          41,
+          300,
+          641
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 1.0066,
+          "dev_weighted_f1": 0.5511,
+          "dev_macro_f1": 0.5564,
+          "dev_accuracy": 0.552
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.9118,
+          "dev_weighted_f1": 0.574,
+          "dev_macro_f1": 0.5811,
+          "dev_accuracy": 0.58
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.8663,
+          "dev_weighted_f1": 0.5659,
+          "dev_macro_f1": 0.5752,
+          "dev_accuracy": 0.5807
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.836,
+          "dev_weighted_f1": 0.59,
+          "dev_macro_f1": 0.5938,
+          "dev_accuracy": 0.5883
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.8073,
+          "dev_weighted_f1": 0.5933,
+          "dev_macro_f1": 0.5963,
+          "dev_accuracy": 0.5903
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.7752,
+          "dev_weighted_f1": 0.5913,
+          "dev_macro_f1": 0.5979,
+          "dev_accuracy": 0.595
+        },
+        {
+          "epoch": 7,
+          "train_loss": 0.7368,
+          "dev_weighted_f1": 0.5845,
+          "dev_macro_f1": 0.5895,
+          "dev_accuracy": 0.59
+        },
+        {
+          "epoch": 8,
+          "train_loss": 0.7013,
+          "dev_weighted_f1": 0.5973,
+          "dev_macro_f1": 0.6004,
+          "dev_accuracy": 0.5963
+        },
+        {
+          "epoch": 9,
+          "train_loss": 0.6533,
+          "dev_weighted_f1": 0.6058,
+          "dev_macro_f1": 0.6078,
+          "dev_accuracy": 0.604
+        },
+        {
+          "epoch": 10,
+          "train_loss": 0.6029,
+          "dev_weighted_f1": 0.6002,
+          "dev_macro_f1": 0.6063,
+          "dev_accuracy": 0.6023
+        },
+        {
+          "epoch": 11,
+          "train_loss": 0.5462,
+          "dev_weighted_f1": 0.5962,
+          "dev_macro_f1": 0.6013,
+          "dev_accuracy": 0.5963
+        },
+        {
+          "epoch": 12,
+          "train_loss": 0.5094,
+          "dev_weighted_f1": 0.5991,
+          "dev_macro_f1": 0.6046,
+          "dev_accuracy": 0.6
+        },
+        {
+          "epoch": 13,
+          "train_loss": 0.4561,
+          "dev_weighted_f1": 0.5921,
+          "dev_macro_f1": 0.5982,
+          "dev_accuracy": 0.5947
+        }
+      ],
+      "n_params": 1938035,
+      "word_vocab_size": 15748,
+      "char_vocab_size": 580,
+      "max_words": 56,
+      "max_chars": 18,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "words": 221
+        },
+        "dev": {
+          "tweets": 0,
+          "words": 42
+        }
+      },
+      "checkpoint": "C:\\Users\\ektas\\OneDrive\\Desktop\\DL\\hinglish-sentimix\\results\\checkpoints\\bilstm_full_raw_s42_seed42.pt",
+      "seconds": 2348.0
+    }
+  ]
+}
