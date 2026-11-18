@@ -1,33 +1,52 @@
 # CMI bucket analysis (issue #3)
 
-Reproduce with `python -m src.cmi_evaluation` (takes a few minutes because of the bootstrap). Numbers: `results/cmi_bucket_scores.csv`. Tests: `tests/test_cmi_evaluation.py`.
+Reproduce with `python -m src.cmi_evaluation` (about 4 seconds). Numbers: `results/cmi_bucket_scores.csv` (scores per bucket) and `results/cmi_bucket_pairwise.csv` (differences between buckets). Tests: `tests/test_cmi_evaluation.py`, `tests/test_uid_checks.py`.
 
 ## Question
 Does the amount of code-mixing in a tweet change how well a model classifies its sentiment?
 
 ## Method
-1. **Buckets.** CMI per tweet comes from `results/cmi_per_tweet.csv` (standard formula, `src/cmi.py`). The two cut points are the 1/3 and 2/3 quantiles of CMI on the **training** set: 23.81 and 34.78. This reproduces the terciles documented in `docs/eda_part2.md` (low 0 to 23.8, medium 24.0 to 34.8, high 35.0 to 50). Dev tweets are placed into the buckets with these train cut points, so no dev information is used to define them.
-2. **Join.** Each file `results/predictions/*_dev.csv` is joined to the CMI table by `uid`. The code stops with an error if any uid has no CMI value; none was missing.
+1. **Buckets.** CMI per tweet comes from `results/cmi_per_tweet.csv` (standard formula, `src/cmi.py`). The two cut points are the 1/3 and 2/3 quantiles of CMI on the **training** set: 23.81 and 34.78. This reproduces the terciles documented in `docs/eda_part2.md`. Dev tweets are placed into the buckets with these train cut points, so no dev information is used to define them. Bucket sizes on dev: low 1,018, medium 981, high 1,001.
+2. **Join.** Each file `results/predictions/*_dev.csv` is joined to the CMI table by `uid`. Before joining, `src/uid_checks.py` verifies that the prediction file and the CMI dev rows contain exactly the same uids, each exactly once; any duplicate, missing or unexpected uid stops the run with an error. The CMI file itself is also checked for duplicate uids. The join then keeps all 3,000 rows (asserted).
 3. **Scores.** Accuracy, precision and recall per class, macro F1 and weighted F1 (official metric) for all dev tweets and for each bucket.
-4. **Uncertainty.** A bucket holds about 1,000 tweets. We resample the bucket's tweets 1,000 times (seed 42) and report a 95% interval for weighted F1.
+4. **Bootstrap.** Each resample draws, with replacement, as many tweets as the bucket holds, and recomputes weighted F1 (1,000 resamples, seed 42). The weighted F1 used inside the bootstrap is a fast exact version; a test checks that it equals `compute_metrics` on random data, including a class that is never predicted. Tests also check that a resample has the bucket's size and draws with replacement.
+5. **Pairwise differences.** For low - medium, medium - high and low - high we take the difference of the two buckets' resampled scores and report its 95% interval. The two buckets are different tweets, so they are resampled independently. An interval that contains 0 means the data do not show a difference.
 
-## Results (dev set, TF-IDF baselines, weighted F1 with 95% interval)
-| Model | Low CMI (1,018 tweets) | Medium CMI (981) | High CMI (1,001) | All (3,000) |
+All intervals are uncorrected for the number of comparisons: 12 prediction files x 3 comparisons = 36 intervals.
+
+## Results (dev set, weighted F1)
+
+**TF-IDF baselines** (bucket scores, and pairwise differences with 95% interval)
+
+| Model | Low | Medium | High | Low - Medium | Medium - High | Low - High |
+|---|---|---|---|---|---|---|
+| Word 1-2 | 0.602 | 0.609 | 0.621 | -0.007 (-0.048, +0.039) | -0.011 (-0.058, +0.034) | -0.018 (-0.060, +0.023) |
+| Char 2-5 | 0.611 | 0.598 | 0.625 | +0.013 (-0.034, +0.055) | -0.027 (-0.064, +0.018) | -0.015 (-0.059, +0.029) |
+| Word + char | 0.596 | 0.605 | 0.630 | -0.009 (-0.056, +0.034) | -0.025 (-0.062, +0.019) | -0.034 (-0.079, +0.009) |
+
+**BiLSTM** (word + character; mean over seeds 42, 43, 44; the three seeds use the same tweets, so they are not independent evidence)
+
+| Preprocessing | Low | Medium | High | Low - High: mean (range over seeds) |
 |---|---|---|---|---|
-| Word 1-2 | 0.602 (0.567 to 0.632) | 0.609 (0.579 to 0.641) | 0.621 (0.592 to 0.649) | 0.611 |
-| Char 2-5 | 0.611 (0.580 to 0.640) | 0.598 (0.568 to 0.629) | 0.625 (0.595 to 0.654) | 0.613 |
-| Word + char | 0.596 (0.567 to 0.627) | 0.605 (0.575 to 0.635) | 0.630 (0.598 to 0.659) | 0.612 |
+| Raw | 0.611 | 0.602 | 0.617 | -0.007 (-0.010 to -0.002) |
+| Clean | 0.615 | 0.609 | 0.611 | +0.004 (+0.001 to +0.010) |
+| Normalized | 0.597 | 0.607 | 0.616 | -0.019 (-0.044 to -0.004) |
+
+Per-seed numbers and their intervals are in the CSV files.
 
 ## What this shows
-- **No measurable effect of CMI on TF-IDF performance.** Scores differ by at most about 0.03 between buckets, and every bucket's 95% interval is about 0.06 wide and overlaps the others. A difference of this size is what chance alone produces with 1,000 tweets.
-- **The direction is not consistent.** High CMI is nominally best for all three models, but the medium bucket is lowest for one model, and the low bucket is lowest for the other two. We do not read a trend into this.
-- **Why this may be so.** TF-IDF counts words and ignores order. Whether a tweet mixes the two languages heavily or lightly may matter little to a model that only looks at which words occur. Transformers read context, so the question should be asked again for them. This is a reason, not a tested explanation.
+- **No clear evidence of a relationship between CMI bucket and performance.** Of the 36 pairwise intervals, 35 contain 0. The one that does not (BiLSTM, normalized text, seed 43, low - high = -0.044) is about what chance gives: with 36 intervals at 95% we expect about 2 to exclude 0 even if no difference exists. The other two normalized seeds point the same way (-0.010 and -0.004) but their intervals contain 0.
+- **Direction.** High CMI is nominally the best bucket for all three TF-IDF models and for BiLSTM with raw and normalized text, but the gaps (about 0.01 to 0.03) are smaller than the sampling error of a 1,000-tweet bucket (about 0.03 either side).
+- **Absence of evidence is not evidence of absence.** With 1,000 tweets per bucket we could only detect a difference of roughly 0.04 to 0.05 or more. A smaller real effect cannot be ruled out.
+- **Why this may be so.** Every tweet in this data set is mixed (see `docs/eda_part2.md`), so "low" means moderately mixed, not single-language. This is a possible reason, not a tested one.
+- **BiLSTM compared with TF-IDF.** The two model families show the same picture (no consistent trend), and the BiLSTM does not outperform TF-IDF on dev.
 
 ## Limits
 - Dev set only; the test set is not used here.
-- Buckets are equal-sized thirds of a distribution in which every tweet is mixed. "Low" means moderately mixed, not single-language (see `docs/eda_part2.md`).
-- The 95% intervals are for each bucket separately. A formal test of the difference between two buckets (a paired bootstrap) was not done; the heavy overlap already says there is no clear difference.
+- Buckets are equal-sized thirds of a distribution in which every tweet is mixed.
+- Intervals are not corrected for multiple comparisons.
 - Our CMI averages (29.8) differ from the task paper's (25.3). The ranking of tweets is what the buckets use, so the conclusion does not depend on the absolute values.
+- Transformer and LLM predictions are not available yet.
 
 ## Next
-The same script scores any new `results/predictions/*_dev.csv` file (BiLSTM, transformers), so the comparison across model types needs only a rerun once those files exist.
+Rerun `python -m src.cmi_evaluation` when `results/predictions/<model>_dev.csv` files (columns `uid,label,pred`) exist for the transformer models, to compare the effect of CMI across model families.
