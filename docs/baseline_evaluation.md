@@ -2,7 +2,7 @@
 
 Reproduce with `python -m src.error_analysis`. Dev set only; the test set is not used. Reuses `src/metrics.py` and the existing TF-IDF predictions (`results/predictions/tfidf_*_dev.csv`); no baseline is retrained.
 
-Files: `results/baseline_scores.csv`, `results/baseline_class_scores.csv`, `results/confusion_matrix_<model>.png`, `results/error_analysis.csv` (all 1,163 dev errors of the best baseline, with flags), `results/error_flag_rates.csv`, `results/error_categories_manual.csv` (hand categories). Tests: `tests/test_error_analysis.py`.
+Files: `results/baseline_scores.csv`, `results/baseline_class_scores.csv`, `results/confusion_matrix_<model>.png`, `results/error_analysis.csv` (all 1,163 dev errors of the best baseline, with flags), `results/error_flag_rates.csv`, `results/error_summary.json` (error counts checked two ways), `results/error_categories_manual.csv` (first reader's hand categories, fixed), `results/error_categories_reviewer2_template.csv` (blank form for a second reader). Second-reader agreement: `python -m src.label_agreement`. Every merge is guarded by `src/uid_checks.py`: prediction files, the CMI table and the hand labels must contain exactly the expected uids (no missing, duplicate or unexpected uid), so no row can be lost silently. Tests: `tests/test_error_analysis.py`, `tests/test_label_agreement.py`, `tests/test_uid_checks.py`.
 
 ## 1. Scores (dev, 3,000 tweets)
 | Model | Weighted F1 (official) | Macro F1 | Accuracy |
@@ -38,26 +38,33 @@ Neutral is the weakest class in every model, in both precision and recall. Negat
 | True neutral (1,128) | 261 (23%) | 623 (55%) | 244 (22%) |
 | True positive (982) | 88 (9%) | 251 (26%) | 643 (65%) |
 
-Of the 1,163 errors, 88% involve neutral (as the true or the predicted label). Only 142 (12%) swap negative and positive. The model rarely confuses opposite feelings; its trouble is the boundary with neutral.
+Of the 1,163 errors, 1,021 (87.8%) involve neutral (as the true or the predicted label): 505 are true-neutral tweets predicted as something else (261 + 244) and 516 are negative or positive tweets predicted neutral (265 + 251). Only 142 (12.2%) swap negative and positive (54 + 88). The count is computed twice, from the confusion matrix and from the prediction rows, and the script stops if they differ (`results/error_summary.json`). The model rarely confuses opposite feelings; its trouble is the boundary with neutral.
 
 ## 4. What goes with errors? (automatic flags, all 3,000 dev tweets)
 | Property | % of errors | % of correct tweets | p-value |
 |---|---|---|---|
 | Contains a negation word (nahi, nhi, not, don't ...) | 37.5 | 30.0 | < 0.001 |
-| Contains an emoji | 16.6 | 19.9 | 0.028 |
+| Contains an emoji (heuristic) | 16.6 | 19.9 | 0.028 |
 | Contains a spelling variant from Ekta's dictionary | 13.8 | 12.0 | 0.16 |
 | Cut off at the end ("...") | 9.3 | 9.5 | 0.88 |
 | Contains a URL fragment | 56.4 | 56.9 | 0.83 |
 | Has repeated letters (sooo) | 4.2 | 5.2 | 0.24 |
 
-p-values are from a chi-square test of errors against correct tweets. With six tests, a p-value must be below about 0.008 to count; only negation does. The emoji difference (p = 0.028) is not strong enough to claim.
+p-values are from a chi-square test of errors against correct tweets. Six flags are tested, so the Bonferroni threshold is 0.05 / 6 = 0.0083 (also stored in `results/error_flag_rates.csv`, with a column saying whether each flag passes). Only negation passes. The emoji difference (p = 0.028) does not, so we do not claim it.
+
+How the flags are detected (all are simple rules, not understanding):
+- **URL:** matches both the tokenised form in this data (`https // t . co / x`, where the colon was lost when the text was split) and ordinary URLs (`https://example.com`, `http://example.com`, `www.example.com`). An earlier version only matched the tokenised form. Every URL in this data set is tokenised, so the correction changes none of the numbers here (56.4% of errors against 56.9% of correct tweets, as before); it matters if the script is used on other text.
+- **Emoji:** a heuristic, not complete emoji detection. It matches only the Unicode blocks U+1F300 to U+1FAFF and U+2600 to U+27BF. Emoji outside them (for example regional-indicator flags) are missed, and a multi-codepoint sequence is flagged if any of its symbols falls in range. The emoji row is therefore approximate.
+- **Negation:** a fixed word list; "no" or "na" can be ordinary words.
 
 - **Negation is linked to errors.** The 988 dev tweets that contain a negation word are misclassified 44.1% of the time, against 36.1% for the 2,012 without one (8 points more). A bag-of-words model cannot flip the meaning of "acha nahi" (not good). This is the clearest, measured weakness, and the sequence models should be checked on it.
 - **Spelling variants are not clearly linked to errors.** 13.8% of errors against 12.0% of correct tweets is not a reliable difference. The flag only detects the 57 variants in Ekta's dictionary, so it covers a small part of all spelling variation; the result is weak evidence either way for the transliteration part of our research question.
 - Truncated tweets, URLs and repeated letters show no link to errors.
 
 ## 5. Categories read by hand (first pass)
-A random sample of 60 errors from the best baseline (seed 42) was read and each given one main category. This is one reader's judgement and has not been checked by a second person. With 60 tweets, each percentage is uncertain by about ±10 points.
+A random sample of 60 errors from the best baseline (seed 42) was read and each given one main category. This is one reader's judgement and has not yet been checked by a second person. With 60 tweets, each percentage is uncertain by about ±10 points.
+
+**Original labels are kept fixed.** `results/error_categories_manual.csv` holds the first reader's labels exactly as first written (MD5 `7126ecf962eff729071dc410b7310dc3`); it must not be edited. A second reader works independently on `results/error_categories_reviewer2_template.csv` (the same 60 tweets, with an empty `category` column) using the same eight categories, and saves `uid,category` as a separate file. Then `python -m src.label_agreement <their file>` prints raw agreement, Cohen's kappa and the list of tweets where the two readers differ. The script refuses a file whose uids differ from the original 60. Kappa corrects raw agreement for the agreement expected by chance; with eight categories of very different size it is the fairer number to report next to raw agreement.
 
 | Category | Tweets | Share | What it means |
 |---|---|---|---|
@@ -76,7 +83,7 @@ Reading:
 - Only 2 of the 60 sit in the code-mixing category. In this sample, errors are not mainly caused by the mixing itself, which fits the flat CMI result in `docs/cmi_analysis.md`.
 
 ## 6. For the team
-- **Reviewer (Ekta or Monis):** read `results/error_categories_manual.csv` next to the tweets in `results/error_analysis.csv` (filter `manual_category`) and note the categories you disagree with. Report the share of agreement.
+- **Second reader (Ekta):** fill `results/error_categories_reviewer2_template.csv` without looking at `error_categories_manual.csv`, save it under a new name, and run `python -m src.label_agreement <file>`. Report raw agreement and Cohen's kappa in the report.
 - **Everyone:** when your model's dev predictions are ready, save them as `results/predictions/<model>_dev.csv` (columns `uid,label,pred`). `python -m src.cmi_evaluation` then scores them by CMI, and this script can be pointed at them.
 - **Experiment log:** the log has one score column (weighted F1). Macro F1 and accuracy per model are in `results/baseline_scores.csv`. The log's columns will be extended after PR #12 (which appends rows to it) is merged, to avoid a merge conflict.
 
