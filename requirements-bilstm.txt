@@ -1,0 +1,12 @@
+# Minimal dependencies for the word + character BiLSTM (training, evaluation, analysis, tests).
+# These are the versions that were actually used: Python 3.12.5, CPU only.
+#   - torch 2.15.0+cpu is the version recorded inside the checkpoints.
+#   - the other versions were used to run the final evaluation, the analysis and the tests.
+#   - the numpy/pandas/scikit-learn versions used for the original training runs were not recorded.
+# No other combination has been tested.
+torch==2.15.0
+numpy==2.5.5
+pandas==3.1.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+pytest==9.2.0

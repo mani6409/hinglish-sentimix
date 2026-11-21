@@ -8,7 +8,7 @@ Run from the repo root (see docs/bilstm.md):
 
 Rules this script follows
 - Train on the official TRAIN split; early-stop and report on the official DEV split.
-- Vocabularies are fitted on TRAIN only (src.bilstm_data.TextEncoder.fit), separately for each mode.
+- Vocabularies are fitted on TRAIN only (src.bilstm.TextEncoder.fit), separately for each mode.
 - Length limits (max words per tweet, max characters per word) are ONE pair of numbers shared by
   raw, clean and normalized: the maximum over the three modes of the limit derived from the TRAIN
   split (see `derive_shared_limits`), so truncation is identical in all modes.
@@ -21,7 +21,7 @@ Outputs (under results/ unless --out-dir is given):
   bilstm_<run>_dev_scores.json               config, limits, per-seed metrics, mean/std over seeds
   experiment_log.csv                         one appended row per seed
   checkpoints/bilstm_<run>_seed<N>.pt        best-dev-epoch model + vocabularies + config + metadata
-                                             (src.bilstm_checkpoint; git-ignored)
+                                             (src.bilstm; git-ignored)
 
 Existing results are protected (see `run_experiment`): the run stops BEFORE training if any of its outputs
 (or log rows) already exist, unless --overwrite is given; outputs are staged and published only after all
@@ -49,9 +49,8 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from src.bilstm_checkpoint import checkpoint_path, save_checkpoint
-from src.bilstm_data import ID2LABEL, SentimentDataset, TextEncoder, derive_length, make_batch
-from src.bilstm_model import POOLINGS, BiLSTMClassifier
+from src.bilstm import (ID2LABEL, POOLINGS, BiLSTMClassifier, SentimentDataset, TextEncoder, checkpoint_path, derive_length,
+                        make_batch, save_checkpoint)
 from src.metrics import LABELS, compute_metrics, confusion
 from src.preprocess import PRESETS, load_processed_split, preprocess_text, tokenize
 from src.seed import DEFAULT_SEED, set_seed
@@ -149,6 +148,7 @@ def _resolve_device(name: str) -> torch.device:
 @torch.no_grad()
 def predict(model: nn.Module, loader: DataLoader, device: torch.device) -> List[int]:
     """Predicted label ids for every row of `loader` (no shuffling, eval mode)."""
+    # evaluation mode: dropout is off and nothing is learned
     model.eval()
     preds: List[int] = []
     for b in loader:
@@ -185,11 +185,13 @@ def derive_shared_limits(raw_train_texts, chars_percentile: float = 99.9, words_
     Only train text is used; dev and test never influence the limits.
     Returns {"max_words", "max_chars", "per_mode": {mode: {"max_words", "max_chars"}}}.
     """
+    # measure the train tweets under each preprocessing mode
     per_mode = {}
     for mode, opts in PRESETS.items():
         toks = [tokenize(preprocess_text(t, **opts)) for t in raw_train_texts]
         per_mode[mode] = {"max_words": derive_length([len(t) for t in toks], words_percentile),
                           "max_chars": derive_length([len(w) for t in toks for w in t], chars_percentile)}
+    # the shared limit is the largest of the three, so every mode is cut the same way
     return {"max_words": max(v["max_words"] for v in per_mode.values()),
             "max_chars": max(v["max_chars"] for v in per_mode.values()), "per_mode": per_mode}
 
@@ -217,10 +219,12 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: BiLSTMConf
     The epoch with the best dev weighted F1 is kept (early stopping on dev). That dev score is
     therefore slightly optimistic; the final unbiased number comes from the one-time test run.
     `limits`: result of `resolve_limits` (computed once per experiment by `run_experiment`).
-    `checkpoint_file`: if given, the best model is saved there (see src.bilstm_checkpoint).
+    `checkpoint_file`: if given, the best model is saved there (see src.bilstm).
     """
+    # stop early if a setting is invalid
     cfg.validate()
     t0 = time.time()
+    # fix the random numbers so the run can be repeated
     set_seed(seed)
     device = _resolve_device(cfg.device)
 
@@ -242,25 +246,34 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: BiLSTMConf
     train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True, collate_fn=make_batch, generator=gen)
     dev_loader = DataLoader(dev_ds, batch_size=256, shuffle=False, collate_fn=make_batch)
 
+    # the model is sized to the vocabularies built from the training data
     model = build_model(cfg, encoder).to(device)
     n_params = sum(p.numel() for p in model.parameters())
+    # Adam optimiser; weight_decay is a small penalty against overfitting
     opt = torch.optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+    # standard loss for choosing one of several classes
     loss_fn = nn.CrossEntropyLoss()
 
+    # remember the best epoch so far (judged by dev weighted F1)
     best = {"f1": -1.0, "epoch": 0, "state": None}
     history, bad_epochs = [], 0
+    # training loop: one pass over all training tweets per epoch
     for epoch in range(1, cfg.epochs + 1):
+        # training mode: dropout is on
         model.train()
         total, n = 0.0, 0
         for b in train_loader:
+            # one step: clear old gradients, forward pass, loss, backward pass, clip, update
             opt.zero_grad()
             logits = model(b["words"].to(device), b["chars"].to(device), b["lengths"])
             loss = loss_fn(logits, b["labels"].to(device))
             loss.backward()
+            # clipping stops very large gradient steps
             nn.utils.clip_grad_norm_(model.parameters(), cfg.grad_clip)
             opt.step()
             total += loss.item() * len(b["labels"])
             n += len(b["labels"])
+        # after each epoch, score the model on the development set
         _, m = _evaluate(model, dev_loader, device, dev_labels)
         history.append({"epoch": epoch, "train_loss": round(total / n, 4), "dev_weighted_f1": round(m["weighted_f1"], 4),
                         "dev_macro_f1": round(m["macro_f1"], 4), "dev_accuracy": round(m["accuracy"], 4)})
@@ -268,11 +281,13 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: BiLSTMConf
             h = history[-1]
             print(f"  seed {seed} epoch {epoch:2d}  loss {h['train_loss']:.4f}  dev wF1 {h['dev_weighted_f1']:.4f}"
                   f"  macroF1 {h['dev_macro_f1']:.4f}  acc {h['dev_accuracy']:.4f}")
+        # new best epoch: keep a copy of the weights and reset the patience counter
         if m["weighted_f1"] > best["f1"]:
             best = {"f1": m["weighted_f1"], "epoch": epoch, "state": copy.deepcopy(model.state_dict())}
             bad_epochs = 0
         else:
             bad_epochs += 1
+            # early stopping: no improvement for `patience` epochs in a row
             if bad_epochs >= cfg.patience:
                 break
 
@@ -354,6 +369,7 @@ def find_existing_outputs(out_dir, run_name: str, seeds: List[int], save_checkpo
         planned.append(prediction_path(out, run_name, s))
         if save_checkpoints:
             planned.append(checkpoint_path(out, run_name, s))
+    # anything that already exists must not be overwritten
     found = [str(p) for p in planned if p.exists()]
     log = out / LOG_NAME
     found += [f"{log} (row of run '{run_name}', seed {s})" for s in seeds if log_has_run(log, run_name, s)]
@@ -372,12 +388,14 @@ def _publish(stage: Path, out_dir: Path, log_rows: List[list], overwrite: bool, 
     right before publishing, in case something appeared while the run was training). Returns the archived paths."""
     files = sorted(p for p in stage.rglob("*") if p.is_file())
     dests = [out_dir / p.relative_to(stage) for p in files]
+    # refuse to overwrite unless overwrite=True
     clash = [str(d) for d in dests if d.exists()]
     if clash and not overwrite:
         raise FileExistsError(f"outputs appeared while the run was training, nothing was published: {clash}")
     archived = []
     for src, dest in zip(files, dests):
         if dest.exists():
+            # overwritten files are moved to archive/, never deleted
             old = out_dir / "archive" / stamp / dest.relative_to(out_dir)
             old.parent.mkdir(parents=True, exist_ok=True)
             os.replace(dest, old)
@@ -442,7 +460,7 @@ def run_experiment(train_df, dev_df, cfg: BiLSTMConfig, seeds: List[int], out_di
                 pd.DataFrame({"uid": dev_df["uid"].values, "label": dev_df["label"].values,
                               "pred": res["pred"]}).to_csv(prediction_path(stage, run_name, seed), index=False)
                 log_rows.append(
-                    [date.today().isoformat(), who, "bilstm word+char (cnn)", DATA_VERSIONS[cfg.mode], cfg.short(), seed,
+                    [date.today().isoformat(), who, ("bilstm word+char (cnn)" if cfg.use_char else "bilstm word-only"), DATA_VERSIONS[cfg.mode], cfg.short(), seed,
                      f"{m['weighted_f1']:.4f}",
                      f"run={run_name}; " + ("rerun=yes; " if existing else "") +
                      f"macro_f1={m['macro_f1']:.4f}; accuracy={m['accuracy']:.4f}; best_epoch={res['best_epoch']}; "

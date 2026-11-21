@@ -12,7 +12,7 @@ import pytest
 pytest.importorskip("torch")
 
 import src.train_bilstm as tb  # noqa: E402
-from src.bilstm_checkpoint import checkpoint_path  # noqa: E402
+from src.bilstm import checkpoint_path  # noqa: E402
 from src.preprocess import load_processed_split  # noqa: E402
 from src.train_bilstm import (  # noqa: E402
     LOG_HEADER,
