@@ -1,0 +1,11 @@
+example,gold,predicted_all_nine,error_kind,cmi_bucket,tweet_masked
+1,negative,neutral,predicted-neutral error,high,what's wrong with skinny guys who wear hulk size t shirts ? phir kehte hein humein kuch kaho na . bhai tum chota size â€¦ URL
+2,negative,neutral/positive,negative/positive flip,high,USER Everytime HASHTAG acts up this Bengali song Bhoot amaar Poot Petni Amaar Jhi Ram Lakkhan Sathe Ache Korbe ama â€¦
+3,positive,neutral,predicted-neutral error,medium,USER tute nii koi rishte purane kisi naye ke aajane se Jata hu mai mujhe tu jane de Kyo pareshan h me â€¦ URL
+4,negative,neutral/positive,negative/positive flip,low,USER This kind of secculurism will nvr give any attention to our ðŸ‡®ðŸ‡³ indians we love USER thougtpro â€¦ URL
+5,neutral,positive,gold-neutral error,medium,USER I wish my dad still alive miss him a lot and I love ur dad's response Khich k rekh
+6,negative,neutral,predicted-neutral error,medium,USER patchi tum kabhi kamiyab nahi hogay barray matches mai hamesha zalil hogay dusro ka haaq markr jo aat â€¦ URL
+7,neutral,positive,gold-neutral error,high,USER Aaj ki HASHTAG thank you HASHTAG lovely meeting you all HASHTAG HASHTAG HASHTAG HASHTAG HASHTAG â€¦
+8,negative,neutral,predicted-neutral error,low,Teko kya problem hai bhai hijab say yahi to problem hi bjp ki bhakto ki hamare mazhab may neeji cheezo may tang ada â€¦ URL
+9,negative,neutral,predicted-neutral error,low,USER We need strictly good people in HR not the jhoote ma â€¦ URL
+10,negative,neutral,predicted-neutral error,low,USER Bibi kabhi ao na water canon key samney khud bhi jo tumharey bap ki hakumat main har bat sey pehley use h â€¦ URL
