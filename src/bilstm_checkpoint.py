@@ -56,7 +56,9 @@ def save_checkpoint(path, model, encoder: TextEncoder, cfg, *, seed: int, best_e
     `extra` is merged into `meta` (limits, sizes, truncation counts, ...).
     """
     path = Path(path)
+    # make sure the folder exists
     path.parent.mkdir(parents=True, exist_ok=True)
+    # everything needed to rebuild and use the model later; no test data is inside
     payload = {
         "format_version": FORMAT_VERSION,
         "model_state": {k: v.detach().cpu() for k, v in model.state_dict().items()},
@@ -76,6 +78,7 @@ def save_checkpoint(path, model, encoder: TextEncoder, cfg, *, seed: int, best_e
             **(extra or {}),
         },
     }
+    # write to a temporary file first, then rename, so a crash never leaves a broken checkpoint
     tmp = path.with_name(path.name + ".tmp")
     torch.save(payload, tmp)
     os.replace(tmp, path)
@@ -101,6 +104,7 @@ class LoadedCheckpoint:
         from src.train_bilstm import predict  # lazy: train_bilstm imports this module
 
         texts = list(texts)
+        # apply the same preprocessing mode the model was trained with
         if preprocess:
             opts = PRESETS[self.config.mode]
             texts = [preprocess_text(t, **opts) for t in texts]
@@ -119,18 +123,23 @@ def load_checkpoint(path, map_location="cpu") -> LoadedCheckpoint:
     """
     from src.train_bilstm import BiLSTMConfig, build_model  # lazy: train_bilstm imports this module
 
+    # weights_only=True: the file can only hold tensors and plain data, so loading cannot run code
     payload = torch.load(Path(path), map_location=map_location, weights_only=True)
+    # refuse files that are not BiLSTM checkpoints
     missing = [k for k in REQUIRED_KEYS if k not in payload]
     if missing:
         raise ValueError(f"{path} is not a BiLSTM checkpoint (missing {missing})")
     if payload["format_version"] != FORMAT_VERSION:
         raise ValueError(f"unsupported checkpoint format {payload['format_version']} (expected {FORMAT_VERSION})")
+    # rebuild the same architecture that was trained, then load the saved weights into it
     cfg = BiLSTMConfig().with_overrides(payload["config"])
     encoder = TextEncoder.from_dict(payload["encoder"])
     model = build_model(cfg, encoder)
     model.load_state_dict(payload["model_state"], strict=True)
+    # evaluation mode: dropout is off
     model.eval()
     meta = payload["meta"]
+    # warn if the Hinglish spelling dictionary changed since training
     if meta.get("variants_sha256") != variants_fingerprint():
         warnings.warn("configs/hinglish_variants.json changed since this checkpoint was trained; "
                       "preprocessing of new text will differ from training", stacklevel=2)

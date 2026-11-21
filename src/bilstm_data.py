@@ -55,8 +55,11 @@ class Vocab:
         specials = list(specials)
         if len(set(specials)) != len(specials) or {PAD, UNK} & set(specials):
             raise ValueError("specials must be unique and different from <pad> and <unk>")
+        # special tokens are never counted as ordinary words
         reserved = {PAD, UNK, *specials}
+        # count how often each token appears
         counts = Counter(t for seq in sequences for t in seq if t not in reserved)
+        # most frequent first; ties sorted alphabetically so the result is the same on every run
         items = sorted(((t, c) for t, c in counts.items() if c >= min_freq), key=lambda x: (-x[1], x[0]))
         if max_size is not None:
             items = items[:max_size]
@@ -70,6 +73,7 @@ class Vocab:
 
     def encode(self, tokens: Iterable[str]) -> List[int]:
         """Ids of `tokens`; anything not in the vocabulary becomes `<unk>`."""
+        # tokens not in the vocabulary become <unk>
         return [self.stoi.get(t, UNK_ID) for t in tokens]
 
 
@@ -121,12 +125,15 @@ class TextEncoder:
         so a few very long tokens (for example glued hashtags) are truncated.
         """
         special_words = tuple(special_words)
+        # vocabularies are built from TRAIN texts only, never from dev or test
         train_tokens = [tokenize(t) for t in train_texts]
         word_seqs = [[_normalize_token(w, lowercase_words, special_words) for w in toks] for toks in train_tokens]
         char_seqs = [[ch for w in toks for ch in _normalize_token(w, lowercase_chars, special_words)]
                      for toks in train_tokens]
+        # words seen fewer than word_min_freq times are left out and later become <unk>
         word_vocab = Vocab.build(word_seqs, min_freq=word_min_freq, specials=special_words)
         char_vocab = Vocab.build(char_seqs, min_freq=char_min_freq)
+        # length limits come from the train data unless they are given
         if max_words is None:
             max_words = derive_length([len(t) for t in train_tokens], words_percentile)
         if max_chars is None:
@@ -159,12 +166,15 @@ class TextEncoder:
         """Return (word_ids, char_ids): word_ids is a list of ints (length 1..max_words) and
         char_ids a list with one list of ints (length 1..max_chars) per word.
         An empty tweet becomes a single `<unk>` word so that every tweet has length >= 1."""
+        # cut tweets that are longer than max_words
         tokens = tokenize(text)[: self.max_words]
+        # an empty tweet becomes one unknown word so the model always gets at least one word
         if not tokens:
             return [UNK_ID], [[UNK_ID]]
         words = self.word_vocab.encode(
             [_normalize_token(t, self.lowercase_words, self.special_words) for t in tokens])
         char_src = [_normalize_token(t, self.lowercase_chars, self.special_words) for t in tokens]
+        # each word becomes a list of character ids, cut to max_chars
         chars = [self.char_vocab.encode(list(t[: self.max_chars])) for t in char_src]
         return words, chars
 
@@ -181,6 +191,7 @@ class SentimentDataset:
             unknown = set(labels) - set(LABEL2ID)
             if unknown:
                 raise ValueError(f"unknown labels {sorted(unknown)}; expected {LABELS}")
+        # encode every tweet once, up front
         self.items = [encoder.encode(t) for t in texts]
         self.labels = [LABEL2ID[l] for l in labels] if labels is not None else [-1] * len(texts)
 
@@ -204,10 +215,12 @@ def make_batch(items):
     """
     import torch
 
+    # find the longest tweet and longest word in this batch and pad everything to that size
     B = len(items)
     lengths = [len(w) for w, _, _ in items]
     T = max(lengths)
     C = max(len(c) for _, chars, _ in items for c in chars)
+    # start with all padding, then fill in the real ids
     words = torch.full((B, T), PAD_ID, dtype=torch.long)
     chars = torch.full((B, T, C), PAD_ID, dtype=torch.long)
     for i, (w, cs, _) in enumerate(items):
