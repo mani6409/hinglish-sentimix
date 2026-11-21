@@ -63,16 +63,17 @@ trained with seeds 42, 43, 44; everything except the mode is identical. Details:
 | clean | 0.6716 ± 0.0030 | 0.6681 ± 0.0023 |
 | normalized | 0.6589 ± 0.0061 | 0.6566 ± 0.0059 |
 
-Differences between modes are small compared with seed variation and test-sampling uncertainty; see `reports/bilstm_final_analysis.md` for the
+Differences between modes are small compared with seed variation and test-sampling uncertainty; see `results/bilstm_test_analysis/bilstm_final_analysis.md` for the
 paired bootstrap intervals, error analysis and the (partly unexplained) gap between dev and test scores. Normalization did not help.
 
 ## Reproducing the BiLSTM results
+The notebook `notebooks/bilstm.ipynb` shows the preprocessing and all BiLSTM tables and curves from the saved results.
+
 Install the BiLSTM dependencies (`pip install -r requirements-bilstm.txt`; Python 3.12.5 and CPU were used) and run from the repository root:
 
 ```bash
 python -m pytest -q tests/test_bilstm_data.py tests/test_bilstm_model.py tests/test_bilstm_limits.py tests/test_bilstm_checkpoint.py tests/test_bilstm_outputs.py
 python -m src.train_bilstm --config configs/bilstm_default.json --mode clean --seeds 42 43 44     # one mode; never loads the test split
-python -m src.analyze_bilstm_results --data-root data/raw/zenodo_download/extracted/Semeval_2020_task9_data/Hinglish   # dev-set analysis
 python -m src.evaluate_bilstm_test --validate-only      # needs the nine checkpoints (not in git); reads no labels
 python -m src.analyze_bilstm_test                       # exploratory test analysis; refuses to overwrite an existing output
 ```
