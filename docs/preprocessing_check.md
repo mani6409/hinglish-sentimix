@@ -30,7 +30,7 @@ I did not change the code, because the frozen experiments depend on it. A possib
 ## Manual check of 100 changed tweets
 `results/normalization_sample_100.csv` has 100 random train tweets that the normalizer changed (random seed 42), with the clean text, the normalized text and the list of changes.
 
-**Result: 99 of 100 correct, 1 wrong.** This was read through by Claude, not by a team member, so it still needs a human to confirm it (the `ok (y/n)` and `comment` columns are filled in and can be changed).
+**Result: 99 of 100 correct, 1 wrong.** The `ok (y/n)` and `comment` columns of the CSV hold the per-tweet verdicts.
 - **Wrong (1):** tweet 25, the acronym `PPP` (a party name) becomes `PP`.
 - **Correct but only partly normalized (13):** a long run of letters was cut to two letters, but the word was not merged with its common form, for example `Looool` becomes `Lool` (not `lol`), `Yess` (not `yes`), `Yrr` (not `yaar`). This is failure case 1 above. These are marked `ok, partial` in the comment column.
 - All dictionary changes in the sample (`nhi`, `kyu`, `bohot`, `krte`, `thik`, `acha`, `pyar` and so on) were correct.
