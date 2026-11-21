@@ -2,6 +2,7 @@
 # with `pip freeze` so the whole team runs identical versions.
 torch
 transformers
+sentencepiece  # XLM-R and IndicBERT tokenizers
 datasets
 scikit-learn
 pandas

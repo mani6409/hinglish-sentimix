@@ -1,0 +1,116 @@
+{
+  "mbert": {
+    "checkpoint": "bert-base-multilingual-cased",
+    "mode": "clean",
+    "percentile": 100.0,
+    "train": {
+      "n": 14000,
+      "mean": 33.08,
+      "p50": 34.0,
+      "p90": 44.0,
+      "p95": 46.0,
+      "p99": 53.0,
+      "p99.9": 66.0,
+      "max": 79
+    },
+    "dev": {
+      "n": 3000,
+      "mean": 33.23,
+      "p50": 35.0,
+      "p90": 43.0,
+      "p95": 46.0,
+      "p99": 54.0,
+      "p99.9": 63.00200000000041,
+      "max": 69
+    },
+    "derived_max_length": 80,
+    "truncated": {
+      "train": {
+        "tweets": 0,
+        "share": 0.0,
+        "subwords_cut": 0
+      },
+      "dev": {
+        "tweets": 0,
+        "share": 0.0,
+        "subwords_cut": 0
+      }
+    }
+  },
+  "xlmr": {
+    "checkpoint": "xlm-roberta-base",
+    "mode": "clean",
+    "percentile": 100.0,
+    "train": {
+      "n": 14000,
+      "mean": 30.59,
+      "p50": 32.0,
+      "p90": 40.0,
+      "p95": 42.0,
+      "p99": 47.0,
+      "p99.9": 61.00100000000202,
+      "max": 90
+    },
+    "dev": {
+      "n": 3000,
+      "mean": 30.67,
+      "p50": 32.0,
+      "p90": 40.0,
+      "p95": 42.0,
+      "p99": 47.00999999999976,
+      "p99.9": 56.007000000001426,
+      "max": 90
+    },
+    "derived_max_length": 96,
+    "truncated": {
+      "train": {
+        "tweets": 0,
+        "share": 0.0,
+        "subwords_cut": 0
+      },
+      "dev": {
+        "tweets": 0,
+        "share": 0.0,
+        "subwords_cut": 0
+      }
+    }
+  },
+  "muril": {
+    "checkpoint": "google/muril-base-cased",
+    "mode": "clean",
+    "percentile": 100.0,
+    "train": {
+      "n": 14000,
+      "mean": 29.82,
+      "p50": 31.0,
+      "p90": 39.100000000000364,
+      "p95": 42.0,
+      "p99": 51.0,
+      "p99.9": 64.0,
+      "max": 76
+    },
+    "dev": {
+      "n": 3000,
+      "mean": 30.03,
+      "p50": 31.0,
+      "p90": 40.0,
+      "p95": 43.0,
+      "p99": 51.00999999999976,
+      "p99.9": 63.001000000000204,
+      "max": 64
+    },
+    "derived_max_length": 80,
+    "truncated": {
+      "train": {
+        "tweets": 0,
+        "share": 0.0,
+        "subwords_cut": 0
+      },
+      "dev": {
+        "tweets": 0,
+        "share": 0.0,
+        "subwords_cut": 0
+      }
+    }
+  }
+}

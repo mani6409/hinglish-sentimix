@@ -1,0 +1,19 @@
+{
+  "_comment": "Shared settings for every transformer (src.train_transformer). Pick the model with --model; override with --set key=value. Keys starting with _ are ignored.",
+  "model_name": "mbert",
+  "mode": "clean",
+  "max_length": null,
+  "length_percentile": 100.0,
+  "batch_size": 32,
+  "eval_batch_size": 128,
+  "epochs": 4,
+  "lr": 2e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "grad_clip": 1.0,
+  "grad_accum_steps": 1,
+  "patience": 2,
+  "dropout": null,
+  "device": "auto",
+  "fp16": true
+}
