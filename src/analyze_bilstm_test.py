@@ -195,9 +195,11 @@ def bootstrap(runs: dict, n: int, B: int, seed: int) -> dict:
     Returns per_run[(mode, seed)] = {"macro_f1": (B,), "weighted_f1": (B,)}. Resample weights are multinomial counts, which is the
     same as drawing n uids with replacement.
     """
+    # fixed seed, so every run gives the same resamples
     rng = np.random.default_rng(seed)
     onehot = {}
     for key, (y, p) in runs.items():
+        # each tweet falls in one of 9 confusion-matrix cells (true class x predicted class)
         cell = y * 3 + p
         m = np.zeros((n, 9), dtype=np.float64)
         m[np.arange(n), cell] = 1.0
@@ -206,8 +208,10 @@ def bootstrap(runs: dict, n: int, B: int, seed: int) -> dict:
     done, chunk = 0, 500
     while done < B:
         b = min(chunk, B - done)
+        # one bootstrap sample: how often each tweet is picked; the same picks are used for all nine runs, so comparisons are paired
         W = rng.multinomial(n, np.full(n, 1.0 / n), size=b).astype(np.float64)
         for key in runs:
+            # confusion matrix of the resampled tweets
             conf = (W @ onehot[key]).reshape(b, 3, 3)
             mf, wf = f1_from_counts(conf)
             out[key]["macro_f1"][done:done + b] = mf
@@ -222,11 +226,13 @@ def pct(a, lo=2.5, hi=97.5):
 
 def bootstrap_tables(boot: dict, point: dict, metric: str) -> dict:
     """Mode means over seeds per resample, mode CIs, pairwise differences (seed-averaged and seed-index-paired)."""
+    # average the three seeds of each mode in every resample
     mode_boot = {m: np.mean([boot[(m, s)][metric] for s in SEEDS], axis=0) for m in MODES}
     mode_point = {m: float(np.mean([point[(m, s)][metric] for s in SEEDS])) for m in MODES}
     modes = {m: {"point": mode_point[m], "ci95": pct(mode_boot[m])} for m in MODES}
     pairs = []
     for a, b in PAIRS:
+        # difference between two modes in every resample; its spread gives the interval
         d = mode_boot[a] - mode_boot[b]
         pairs.append({
             "a": a, "b": b, "point": mode_point[a] - mode_point[b],
@@ -248,11 +254,15 @@ def point_metrics(runs: dict) -> dict:
 
 
 def error_breakdown(y, p) -> dict:
+    # a tweet is an error when the predicted and true labels differ
     wrong = y != p
     n_err = int(wrong.sum())
+    # gold-neutral error: the true class is neutral, the prediction is not
     gold_neu = wrong & (y == NEUTRAL)
+    # predicted-neutral error: the model said neutral, the true class is not
     pred_neu = wrong & (p == NEUTRAL)
     neu_in = gold_neu | pred_neu
+    # negative<->positive flip: neutral is not involved
     flip = wrong & (y != NEUTRAL) & (p != NEUTRAL)
     conf = conf_matrix(y, p)
     out = {
@@ -295,6 +305,7 @@ def bucket_metrics(runs: dict, bucket: np.ndarray, names) -> list:
 def reweighted_f1(runs: dict, y_ref_props: np.ndarray, y_true: np.ndarray) -> dict:
     """Macro/weighted F1 of each run after re-weighting its tweets so the gold-class mix equals y_ref_props."""
     own = np.bincount(y_true, minlength=3) / len(y_true)
+    # weight each tweet so that the class mix equals the reference mix
     w_class = y_ref_props / own
     out = {}
     for key, (y, p) in runs.items():
@@ -353,11 +364,14 @@ def build(data_root: Path, out_dir: Path, B: int, log=print) -> dict:
     if final_abs in (out_dir.resolve(), *out_dir.resolve().parents):
         raise ProtocolError("refusing to write inside the frozen final-test folder")
     staging = out_dir.with_name(out_dir.name + ".staging")
+    # never overwrite earlier results
     if out_dir.exists() or staging.exists():
         raise ProtocolError(f"{out_dir} (or its staging folder) already exists; this analysis never overwrites")
     paths = frozen_input_paths(manifest, data_root)
     log("hashing frozen inputs (before) ...")
+    # fingerprint all frozen files first; they are checked again at the end
     before = hash_all(paths)
+    # stop at once if a frozen file differs from its recorded hash
     verify_against_records(manifest, before)
 
     data, uids, frames, test_labels, dev_df = load_runs(manifest, data_root)
@@ -459,6 +473,7 @@ def build(data_root: Path, out_dir: Path, B: int, log=print) -> dict:
     wrong_all = np.all([data["test"][k][0] != data["test"][k][1] for k in RUNS], axis=0)
     cand = np.flatnonzero(wrong_all)
     rng = np.random.default_rng(BOOT_SEED)
+    # random choice with a fixed seed, not hand-picked
     pick = np.sort(rng.choice(cand, size=min(10, len(cand)), replace=False)) if len(cand) else np.array([], dtype=int)
     cmi_test = cmi_df[cmi_df["split"] == "test"].set_index("uid").loc[uids["test"]]["cmi"].to_numpy()
     ex_rows = []
@@ -819,6 +834,7 @@ def main(argv=None) -> int:
         make_figures(R, staging / "figures")
         atomic_write(staging / a.report, render_report(R))
         print("hashing frozen inputs (after) ...")
+        # hash again: no frozen file may have changed while the analysis ran
         after = hash_all(R["paths"])
         if after != R["before"]:
             raise ProtocolError("a frozen input changed while the analysis ran: " + ", ".join(k for k in after if after[k] != R["before"][k]))
@@ -828,6 +844,7 @@ def main(argv=None) -> int:
             "bootstrap": {"resamples": a.boot, "seed": BOOT_SEED}, "frozen_inputs_md5_before_equal_after": True, "frozen_inputs_md5": after,
             "outputs_md5": outputs, "environment": {"python": sys.version.split()[0], "platform": platform.platform(),
                                                        **{k: __import__(k).__version__ for k in ("numpy", "pandas", "sklearn", "torch", "matplotlib")}}})
+        # publish all outputs in one step
         staging.rename(out_dir)
     except Exception:
         if staging.exists():
