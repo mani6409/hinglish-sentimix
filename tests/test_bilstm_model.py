@@ -15,8 +15,8 @@ torch = pytest.importorskip("torch")
 import pandas as pd  # noqa: E402
 
 import src.train_bilstm as tb  # noqa: E402
-from src.bilstm_data import PLACEHOLDER_WORDS, SentimentDataset, TextEncoder, make_batch  # noqa: E402
-from src.bilstm_model import POOLINGS, BiLSTMClassifier, CharCNN  # noqa: E402
+from src.bilstm import PLACEHOLDER_WORDS, SentimentDataset, TextEncoder, make_batch  # noqa: E402
+from src.bilstm import POOLINGS, BiLSTMClassifier, CharCNN  # noqa: E402
 from src.metrics import LABELS  # noqa: E402
 from src.preprocess import load_processed_split  # noqa: E402
 from src.train_bilstm import BiLSTMConfig, derive_shared_limits, main, run_experiment, train_one_seed  # noqa: E402

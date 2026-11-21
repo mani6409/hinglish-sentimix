@@ -8,7 +8,7 @@ Run from the repo root (see docs/bilstm.md):
 
 Rules this script follows
 - Train on the official TRAIN split; early-stop and report on the official DEV split.
-- Vocabularies are fitted on TRAIN only (src.bilstm_data.TextEncoder.fit), separately for each mode.
+- Vocabularies are fitted on TRAIN only (src.bilstm.TextEncoder.fit), separately for each mode.
 - Length limits (max words per tweet, max characters per word) are ONE pair of numbers shared by
   raw, clean and normalized: the maximum over the three modes of the limit derived from the TRAIN
   split (see `derive_shared_limits`), so truncation is identical in all modes.
@@ -21,7 +21,7 @@ Outputs (under results/ unless --out-dir is given):
   bilstm_<run>_dev_scores.json               config, limits, per-seed metrics, mean/std over seeds
   experiment_log.csv                         one appended row per seed
   checkpoints/bilstm_<run>_seed<N>.pt        best-dev-epoch model + vocabularies + config + metadata
-                                             (src.bilstm_checkpoint; git-ignored)
+                                             (src.bilstm; git-ignored)
 
 Existing results are protected (see `run_experiment`): the run stops BEFORE training if any of its outputs
 (or log rows) already exist, unless --overwrite is given; outputs are staged and published only after all
@@ -49,9 +49,8 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from src.bilstm_checkpoint import checkpoint_path, save_checkpoint
-from src.bilstm_data import ID2LABEL, SentimentDataset, TextEncoder, derive_length, make_batch
-from src.bilstm_model import POOLINGS, BiLSTMClassifier
+from src.bilstm import (ID2LABEL, POOLINGS, BiLSTMClassifier, SentimentDataset, TextEncoder, checkpoint_path, derive_length,
+                        make_batch, save_checkpoint)
 from src.metrics import LABELS, compute_metrics, confusion
 from src.preprocess import PRESETS, load_processed_split, preprocess_text, tokenize
 from src.seed import DEFAULT_SEED, set_seed
@@ -220,7 +219,7 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: BiLSTMConf
     The epoch with the best dev weighted F1 is kept (early stopping on dev). That dev score is
     therefore slightly optimistic; the final unbiased number comes from the one-time test run.
     `limits`: result of `resolve_limits` (computed once per experiment by `run_experiment`).
-    `checkpoint_file`: if given, the best model is saved there (see src.bilstm_checkpoint).
+    `checkpoint_file`: if given, the best model is saved there (see src.bilstm).
     """
     # stop early if a setting is invalid
     cfg.validate()
