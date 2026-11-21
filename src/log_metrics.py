@@ -6,7 +6,9 @@ Run from the repo root:  python -m src.log_metrics
   recomputed weighted F1; for BiLSTM rows the macro F1 and accuracy written in `notes` must agree too.
   The script stops if anything disagrees.
 - Rows without a value in the new columns are filled; rows that already have one are left as they are, so the
-  script can be run again after new experiments are logged (new rows may have only the original 9 columns).
+  script can be run again after new experiments are logged.
+- Training scripts (src/baselines_tfidf.py, src/train_bilstm.py) still append rows with the ORIGINAL 9 columns.
+  Until this script is rerun, such a row has empty values in the three new columns. Line endings stay CRLF.
 """
 import re
 from pathlib import Path
@@ -70,7 +72,7 @@ def main():
             if found and abs(float(found.group(1)) - value) > TOL:
                 raise AssertionError(f"row {i}: notes say {key}={found.group(1)} but recomputed {value:.4f}")
         log.loc[i, NEW] = [round(w, 4), round(mac, 4), round(acc, 4)]
-    log.to_csv(LOG, index=False)
+    log.to_csv(LOG, index=False, lineterminator="\r\n")  # CRLF, like the csv.writer calls that append rows
     print(log[["who", "model", "seed", "dev_score"] + NEW].to_string(index=False, max_colwidth=26))
 
 

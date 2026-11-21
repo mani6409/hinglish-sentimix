@@ -92,3 +92,18 @@ def test_neutral_error_counts_agree_with_row_count():
 
 def test_bonferroni_threshold_for_six_flags():
     assert 0.05 / 6 == pytest.approx(0.008333, abs=1e-6)
+
+
+def test_reading_sample_reproduces_the_saved_hand_labelled_uids():
+    from src.data import load_split
+    from src.error_analysis import BEST, reading_sample_uids
+    dev = load_split("dev")
+    preds = pd.read_csv(ROOT / "results" / "predictions" / f"{BEST}_dev.csv")
+    saved = pd.read_csv(ROOT / "results" / "error_categories_manual.csv")
+    uids = reading_sample_uids(dev, preds)
+    assert len(uids) == 60 and set(uids) == set(saved["uid"])
+
+
+def test_experiment_log_keeps_crlf_line_endings():
+    raw = (ROOT / "results" / "experiment_log.csv").read_bytes()
+    assert raw.count(b"\r\n") == raw.count(b"\n") > 1

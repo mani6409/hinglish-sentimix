@@ -55,7 +55,7 @@ p-values are from a chi-square test of errors against correct tweets. Six flags 
 How the flags are detected (all are simple rules, not understanding):
 - **URL:** matches both the tokenised form in this data (`https // t . co / x`, where the colon was lost when the text was split) and ordinary URLs (`https://example.com`, `http://example.com`, `www.example.com`). An earlier version only matched the tokenised form. Every URL in this data set is tokenised, so the correction changes none of the numbers here (56.4% of errors against 56.9% of correct tweets, as before); it matters if the script is used on other text.
 - **Emoji:** a heuristic, not complete emoji detection. It matches only the Unicode blocks U+1F300 to U+1FAFF and U+2600 to U+27BF. Emoji outside them (for example regional-indicator flags) are missed, and a multi-codepoint sequence is flagged if any of its symbols falls in range. The emoji row is therefore approximate.
-- **Negation:** a fixed word list; "no" or "na" can be ordinary words.
+- **Negation:** a keyword heuristic: tweets are flagged if they contain any word of a fixed list (nahi, nhi, mat, na, no, not, never, ...). Words such as "no" or "na" can be ordinary words. The result does not depend on those ambiguous words: Ekta repeated the test without "na", "no" and "mat" and still found errors on 32.2% of flagged tweets against 25.5% (p < 0.001).
 
 - **Negation is linked to errors.** The 988 dev tweets that contain a negation word are misclassified 44.1% of the time, against 36.1% for the 2,012 without one (8 points more). A bag-of-words model cannot flip the meaning of "acha nahi" (not good). This is the clearest, measured weakness, and the sequence models should be checked on it.
 - **Spelling variants are not clearly linked to errors.** 13.8% of errors against 12.0% of correct tweets is not a reliable difference. The flag only detects the 57 variants in Ekta's dictionary, so it covers a small part of all spelling variation; the result is weak evidence either way for the transliteration part of our research question.
@@ -63,6 +63,8 @@ How the flags are detected (all are simple rules, not understanding):
 
 ## 5. Categories read by hand (first pass)
 A random sample of 60 errors from the best baseline (seed 42) was read and each given one main category. This is one reader's judgement and has not yet been checked by a second person. With 60 tweets, each percentage is uncertain by about ±10 points.
+
+**How the 60 tweets were chosen.** `reading_sample_uids` in `src/error_analysis.py` draws 60 of the best baseline's dev errors (rows in dev-file order, `random_state=42`); `error_analysis` stops if `error_categories_manual.csv` is not exactly that sample, and a test checks the same.
 
 **Original labels are kept fixed.** `results/error_categories_manual.csv` holds the first reader's labels exactly as first written (MD5 `7126ecf962eff729071dc410b7310dc3`); it must not be edited. A second reader works independently on `results/error_categories_reviewer2_template.csv` (the same 60 tweets, with an empty `category` column) using the same eight categories, and saves `uid,category` as a separate file. Then `python -m src.label_agreement <their file>` prints raw agreement, Cohen's kappa and the list of tweets where the two readers differ. The script refuses a file whose uids differ from the original 60. Kappa corrects raw agreement for the agreement expected by chance; with eight categories of very different size it is the fairer number to report next to raw agreement.
 

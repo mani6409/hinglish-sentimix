@@ -64,6 +64,13 @@ def flags(df, variants):
     return out
 
 
+def reading_sample_uids(dev, best_predictions, n=60, seed=42):
+    """The uids of the random errors that were read by hand. Rows follow the DEV file order (the sample depends
+    on row order), then `n` errors are drawn with `random_state=seed`."""
+    m = dev[["uid", "label"]].merge(best_predictions[["uid", "pred"]], on="uid", how="inner", validate="one_to_one")
+    return m[m["pred"] != m["label"]].sample(n, random_state=seed)["uid"].tolist()
+
+
 def neutral_error_counts(cm):
     """From a 3x3 confusion matrix (rows true, columns predicted): errors, errors involving neutral, neg<->pos swaps."""
     cm = np.asarray(cm)
@@ -124,6 +131,8 @@ def main():
     best["is_error"] = best["label"] != best["pred"]
 
     manual = pd.read_csv(ROOT / "results" / "error_categories_manual.csv")
+    if set(reading_sample_uids(dev, preds[BEST])) != set(manual["uid"]):
+        raise ValueError("error_categories_manual.csv is not the seed-42 random sample of 60 errors of " + BEST)
     if not manual["uid"].is_unique:
         raise ValueError("error_categories_manual.csv: duplicate uids")
     unknown = set(manual["uid"]) - set(best.loc[best["is_error"], "uid"])
