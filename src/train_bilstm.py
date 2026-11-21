@@ -461,7 +461,7 @@ def run_experiment(train_df, dev_df, cfg: BiLSTMConfig, seeds: List[int], out_di
                 pd.DataFrame({"uid": dev_df["uid"].values, "label": dev_df["label"].values,
                               "pred": res["pred"]}).to_csv(prediction_path(stage, run_name, seed), index=False)
                 log_rows.append(
-                    [date.today().isoformat(), who, "bilstm word+char (cnn)", DATA_VERSIONS[cfg.mode], cfg.short(), seed,
+                    [date.today().isoformat(), who, ("bilstm word+char (cnn)" if cfg.use_char else "bilstm word-only"), DATA_VERSIONS[cfg.mode], cfg.short(), seed,
                      f"{m['weighted_f1']:.4f}",
                      f"run={run_name}; " + ("rerun=yes; " if existing else "") +
                      f"macro_f1={m['macro_f1']:.4f}; accuracy={m['accuracy']:.4f}; best_epoch={res['best_epoch']}; "
