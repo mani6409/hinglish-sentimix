@@ -157,6 +157,7 @@ def load_everything(data_root: Path):
     y = dev["label"].to_numpy()
     check("Official dev file: 3,000 unique uids", len(uids) == 3000 and len(set(uids)) == 3000, f"{len(uids)} rows")
 
+    # load the stored scores and the predictions of all nine runs
     scores, preds = {}, {}
     json_diffs = []
     for m in MODES:
@@ -166,6 +167,7 @@ def load_everything(data_root: Path):
             scores[(m, s)] = d
             check(f"{name}: scores JSON metadata (mode, seed, limits 56/18, single seed)",
                   d["config"]["mode"] == m and d["seeds"] == [s] and (d["limits"]["max_words"], d["limits"]["max_chars"]) == (56, 18))
+            # read one run's prediction file and check it before using it
             df = pd.read_csv(ROOT / "results" / "predictions" / f"bilstm_{name}_seed{s}_dev.csv")
             ok_cols = list(df.columns) == ["uid", "label", "pred"]
             ok_rows = len(df) == 3000 and df["uid"].is_unique
@@ -201,6 +203,7 @@ def load_everything(data_root: Path):
     cdev = pd.DataFrame(rows["dev"], columns=["uid", "label", "cmi"])
     check("CMI dev rows: 3,000, unique uids, uid set == official dev uids (no missing, no duplicate)",
           len(cdev) == 3000 and cdev["uid"].is_unique and set(cdev["uid"]) == set(uids))
+    # put the CMI rows in the same order as the dev tweets (matched by uid)
     cdev = cdev.set_index("uid").loc[uids]
     check("CMI dev label column equals the official dev gold label (join by uid)", bool((cdev["label"].to_numpy() == y).all()))
     check("CMI values are within [0, 50]", bool(cdev["cmi"].between(0, 50).all()))
@@ -225,6 +228,7 @@ def load_everything(data_root: Path):
 
 # ============================================================== bootstrap =====
 def macro_f1_from_conf(conf):  # conf: (B, 3, 3) rows = true
+    # true positives per class for every resample (the diagonal of each confusion matrix)
     tp = np.einsum("bii->bi", conf).astype(float)
     prec = np.divide(tp, conf.sum(1), out=np.zeros_like(tp), where=conf.sum(1) > 0)
     rec = np.divide(tp, conf.sum(2), out=np.zeros_like(tp), where=conf.sum(2) > 0)
@@ -237,19 +241,23 @@ def bootstrap_all(y, preds, B=BOOT_B, seed=BOOT_SEED):
     seed-averaged accuracy and macro F1 for each resample."""
     rng = np.random.default_rng(seed)
     n = len(y)
+    # each row is one bootstrap sample: n tweets drawn with replacement; the same rows are used for every mode and seed
     idx = rng.integers(0, n, (B, n))
     code = {c: i for i, c in enumerate(LABELS)}
     ycode = np.array([code[v] for v in y])
     out = {}
+    # offsets let one bincount call build a 3x3 confusion matrix for every resample at once
     offs = 9 * np.arange(B)[:, None]
     for m in MODES:
         accs, f1s = [], []
         for s in SEEDS:
             pc = np.array([code[v] for v in preds[(m, s)]])
             t, p = ycode[idx], pc[idx]
+            # accuracy of this run on every resample
             accs.append((t == p).mean(1))
             conf = np.bincount((t * 3 + p + offs).ravel(), minlength=9 * B).reshape(B, 3, 3)
             f1s.append(macro_f1_from_conf(conf))
+        # average the three seeds, so each mode has one score per resample
         out[m] = {"accuracy": np.mean(accs, 0), "macro_f1": np.mean(f1s, 0)}
     return out
 
@@ -260,8 +268,10 @@ def ci(arr):
 
 def boot_subset_diff(corr_a, corr_b, mask, B=BOOT_B, seed=BOOT_SEED):
     """Bootstrap the difference in seed-averaged accuracy between two modes on the tweets in `mask`."""
+    # per-tweet difference in correctness, only for the tweets in the chosen group
     d = (corr_a - corr_b)[mask]
     rng = np.random.default_rng(seed)
+    # bootstrap the mean difference inside the group
     means = d[rng.integers(0, len(d), (B, len(d)))].mean(1)
     return float(d.mean()), ci(means)
 
@@ -411,6 +421,7 @@ def fig_cmi(bucket_stats, bucket_n, bucket_labels, path):
 # ================================================================= report =====
 def build(data_root: Path, overwrite: bool):
     outputs = [REPORT_PATH] + [FIG_DIR / n for n in FIG_NAMES.values()]
+    # do not overwrite an earlier report or figures unless asked to
     existing = [str(p) for p in outputs if p.exists()]
     if existing and not overwrite:
         sys.exit("refusing to overwrite existing outputs (use --overwrite):\n  " + "\n  ".join(existing))
@@ -435,8 +446,10 @@ def build(data_root: Path, overwrite: bool):
     stored_ok = all((np.array(scores[(m, s)]["per_seed"][0]["confusion"]) == conf_seed[(m, s)]).all() for m in MODES for s in SEEDS)
     D["checks"].append(("Confusion matrices recomputed from predictions equal those stored in the score JSONs", stored_ok, ""))
 
+    # for every mode and seed: was each dev tweet predicted correctly?
     correct = {m: np.stack([preds[(m, s)] == y for s in SEEDS]) for m in MODES}  # (3 seeds, n)
     corr_mean = {m: correct[m].mean(0) for m in MODES}  # seed-averaged per-tweet correctness
+    # how many of the nine runs got each tweet wrong (0 to 9)
     errs9 = sum((~correct[m]).sum(0) for m in MODES)
 
     def agg(key, m):
@@ -445,6 +458,7 @@ def build(data_root: Path, overwrite: bool):
     def agg_pc(m, c, k):
         return [seed_m[(m, s)]["per_class"][c][k] for s in SEEDS]
 
+    # paired bootstrap over the dev tweets (see BOOT_B and BOOT_SEED at the top of the file)
     boot = bootstrap_all(y, preds)
 
     # ================= title / summary placeholder (filled at the end)
@@ -966,6 +980,7 @@ def main(argv=None):
     ap.add_argument("--overwrite", action="store_true", help="replace the report and figures this script wrote earlier")
     args = ap.parse_args(argv)
     D = build(Path(args.data_root), args.overwrite)
+    # every verification check must pass, otherwise the script exits with an error
     bad = [d for d, ok, _ in D["checks"] if not ok]
     print(f"wrote {REPORT_PATH.relative_to(ROOT)} and {len(FIG_NAMES)} figures; verification checks: {len(D['checks']) - len(bad)}/{len(D['checks'])} passed")
     if bad:
