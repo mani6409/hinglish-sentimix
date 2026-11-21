@@ -24,7 +24,7 @@ Mani, Monis, Ekta, Akansha
 | `reports/` | Final report |
 
 ## Setup
-Python version: **3.11** for the team (the BiLSTM evaluation was run on 3.12.5; see `requirements-bilstm.txt`) (so all installs match). Create the environment with that version, for example `python3.11 -m venv .venv`.
+Python version: the team target is **3.11**, so create the environment with it, for example `python3.11 -m venv .venv`. The BiLSTM results in this repo were produced on Python 3.12.5 (CPU); the pinned versions are in `requirements-bilstm.txt`.
 
 ```bash
 python3.11 -m venv .venv
