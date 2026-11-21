@@ -337,11 +337,6 @@ def append_log_rows(path: Path, rows: List[list]) -> None:
     os.replace(tmp, path)
 
 
-def log_experiment(path: Path, row: list) -> None:
-    """Append one row to experiment_log.csv (creating it with its header if missing)."""
-    append_log_rows(path, [row])
-
-
 def log_has_run(path: Path, run_name: str, seed: int) -> bool:
     """True if experiment_log.csv already holds a row written by run `run_name` for `seed`
     (the notes of every row written by this script start with `run=<run_name>;`)."""

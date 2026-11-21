@@ -26,7 +26,7 @@ import math
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable, Mapping, Optional
+from typing import Mapping, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_VARIANTS_PATH = ROOT / "configs" / "hinglish_variants.json"
