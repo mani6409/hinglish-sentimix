@@ -109,3 +109,46 @@ def test_pairwise_rows_have_three_comparisons(tmp_path):
     _, pairs = evaluate_file(p, cmi, (20.0, 40.0), np.random.default_rng(0))
     assert [r["comparison"] for r in pairs] == ["low - medium", "medium - high", "low - high"]
     assert all(r["ci_low"] <= r["difference"] <= r["ci_high"] or r["difference"] == 0 for r in pairs)
+
+
+# ---- second review round -------------------------------------------------------------------------------------
+from src.cmi_evaluation import file_rng, read_cmi_without_test, summarize_by_group
+
+
+def test_file_rng_depends_only_on_the_file_name():
+    a = file_rng("tfidf_char_2-5_dev").integers(0, 10**9, 5)
+    b = file_rng("tfidf_char_2-5_dev").integers(0, 10**9, 5)
+    c = file_rng("another_model_dev").integers(0, 10**9, 5)
+    assert list(a) == list(b) and list(a) != list(c)
+
+
+def test_adding_a_file_does_not_change_other_files_results(tmp_path):
+    labels = ["negative", "neutral", "positive"] * 20
+    cmi = pd.DataFrame({"uid": range(60), "cmi": np.linspace(0, 50, 60)})
+    a, b = tmp_path / "a_dev.csv", tmp_path / "b_dev.csv"
+    _write_preds(a, range(60), labels, labels[1:] + labels[:1])
+    _write_preds(b, range(60), labels, labels[2:] + labels[:2])
+    alone, _ = evaluate_file(b, cmi, (20.0, 40.0))
+    evaluate_file(a, cmi, (20.0, 40.0))           # another file evaluated before b
+    after, _ = evaluate_file(b, cmi, (20.0, 40.0))
+    assert [r["weighted_f1_ci_low"] for r in alone] == [r["weighted_f1_ci_low"] for r in after]
+
+
+def test_cmi_reader_drops_test_rows(tmp_path):
+    p = tmp_path / "cmi.csv"
+    pd.DataFrame({"uid": range(7), "split": ["train", "dev", "test", "test", "dev", "train", "test"],
+                  "label": ["neutral"] * 7, "cmi": [1.0] * 7}).to_csv(p, index=False)
+    out = read_cmi_without_test(p, chunksize=2)
+    assert set(out["split"]) == {"train", "dev"} and len(out) == 4
+
+
+def test_group_summary_means_and_sds_over_seeds():
+    rows = []
+    for seed, f in ((42, 0.60), (43, 0.62), (44, 0.64)):
+        rows.append({"model": f"bilstm_full_raw_s{seed}_seed{seed}", "bucket": "low", "weighted_f1": f})
+    rows.append({"model": "tfidf_char_2-5", "bucket": "low", "weighted_f1": 0.61})
+    g = summarize_by_group(pd.DataFrame(rows))
+    assert list(g["group"]) == ["bilstm_full_raw"]
+    assert g["weighted_f1_mean"].iloc[0] == pytest.approx(0.62)
+    assert g["weighted_f1_sd"].iloc[0] == pytest.approx(0.02)
+    assert g["runs"].iloc[0] == 3
