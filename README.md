@@ -74,16 +74,11 @@ Install the BiLSTM dependencies (`pip install -r requirements-bilstm.txt`; Pytho
 ```bash
 python -m pytest -q tests/test_bilstm_data.py tests/test_bilstm_model.py tests/test_bilstm_limits.py tests/test_bilstm_checkpoint.py tests/test_bilstm_outputs.py
 python -m src.train_bilstm --config configs/bilstm_default.json --mode clean --seeds 42 43 44     # one mode; never loads the test split
-python -m src.evaluate_bilstm_test --validate-only      # needs the nine checkpoints (not in git); reads no labels
-python -m src.analyze_bilstm_test                       # exploratory test analysis; refuses to overwrite an existing output
 ```
 
 The nine checkpoints are git-ignored; their MD5 hashes are in `configs/bilstm_frozen_checkpoints.json`. The final test evaluation
 (`--confirm-final-test`) was run once and refuses to overwrite `results/bilstm_final_test/`.
 
-## References
-1. Patwa et al., SemEval-2020 Task 9: Overview of Sentiment Analysis of Code-Mixed Tweets. https://arxiv.org/abs/2008.04277
-2. Conneau et al., Unsupervised Cross-lingual Representation Learning at Scale (XLM-R). https://arxiv.org/abs/1911.02116
 ## References
 1. Patwa et al., SemEval-2020 Task 9: Overview of Sentiment Analysis of Code-Mixed Tweets. https://arxiv.org/abs/2008.04277
 2. Conneau et al., Unsupervised Cross-lingual Representation Learning at Scale (XLM-R). https://arxiv.org/abs/1911.02116
