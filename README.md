@@ -44,6 +44,7 @@ compute_metrics(y_true, y_pred)["weighted_f1"]
 - `src/data.py`: `load_split("train" | "dev" | "test")` returns one row per tweet (uid, label, text, tokens, langs).
 - `src/seed.py`: `set_seed(42)` at the start of every script.
 - `src/metrics.py`: `compute_metrics`, `confusion`.
+- `src/train_transformer.py`: fine-tune any transformer, for example `python -m src.train_transformer --model xlmr --seeds 42 43 44`. See `docs/transformer_pipeline.md`.
 - Tests: `python -m pytest -q`
 
 ## Data
