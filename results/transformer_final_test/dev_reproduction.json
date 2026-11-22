@@ -1,0 +1,44 @@
+{
+  "mbert/seed42": {
+    "agreement": 1.0,
+    "weighted_f1": 0.6128921363165587,
+    "weighted_f1_reported_in_training": 0.6128921363165587,
+    "weighted_f1_diff": 0.0,
+    "changed_predictions": 0
+  },
+  "mbert/seed43": {
+    "agreement": 1.0,
+    "weighted_f1": 0.6121948745377477,
+    "weighted_f1_reported_in_training": 0.6121948745377477,
+    "weighted_f1_diff": 0.0,
+    "changed_predictions": 0
+  },
+  "mbert/seed44": {
+    "agreement": 1.0,
+    "weighted_f1": 0.6046501381891695,
+    "weighted_f1_reported_in_training": 0.6046501381891695,
+    "weighted_f1_diff": 0.0,
+    "changed_predictions": 0
+  },
+  "xlmr/seed42": {
+    "agreement": 1.0,
+    "weighted_f1": 0.6300828574133353,
+    "weighted_f1_reported_in_training": 0.6300828574133353,
+    "weighted_f1_diff": 0.0,
+    "changed_predictions": 0
+  },
+  "xlmr/seed43": {
+    "agreement": 1.0,
+    "weighted_f1": 0.6264879243638929,
+    "weighted_f1_reported_in_training": 0.6264879243638929,
+    "weighted_f1_diff": 0.0,
+    "changed_predictions": 0
+  },
+  "xlmr/seed44": {
+    "agreement": 1.0,
+    "weighted_f1": 0.624251096198797,
+    "weighted_f1_reported_in_training": 0.624251096198797,
+    "weighted_f1_diff": 0.0,
+    "changed_predictions": 0
+  }
+}
