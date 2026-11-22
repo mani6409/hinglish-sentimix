@@ -37,6 +37,7 @@ def bucket_edges(train_cmi):
 
 
 def assign_bucket(cmi, edges):
+    """Label each CMI value "low", "medium" or "high" using the two train cut points (edges are inclusive on the right)."""
     lo, hi = edges
     return pd.cut(cmi, bins=[-np.inf, lo, hi, np.inf], labels=BUCKETS)
 
@@ -92,6 +93,7 @@ def summarize_by_group(scores):
 
 
 def interval(scores):
+    """95% percentile interval of bootstrap scores: the 2.5th and 97.5th percentiles."""
     return float(np.percentile(scores, 2.5)), float(np.percentile(scores, 97.5))
 
 

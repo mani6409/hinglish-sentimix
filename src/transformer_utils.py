@@ -142,7 +142,7 @@ def resolve_device(name: str):
 
 # ---------------------------------------------------- model and tokenizer ----
 def load_tokenizer(model_name: str):
-    """The tokenizer of the pretrained model (downloaded the first time)."""
+    """The tokenizer of the pretrained model (WordPiece for mBERT, SentencePiece for XLM-R; downloaded the first time)."""
     from transformers import AutoTokenizer
 
     return AutoTokenizer.from_pretrained(resolve_model_name(model_name))
@@ -153,6 +153,8 @@ def load_model(model_name: str, dropout: Optional[float] = None):
     from transformers import AutoConfig, AutoModelForSequenceClassification
 
     name = resolve_model_name(model_name)
+    # the pretrained encoder weights are loaded; the classification layer is new and starts random.
+    # id2label / label2id fix the class order to src.metrics.LABELS
     config = AutoConfig.from_pretrained(name, num_labels=len(LABELS), id2label=dict(ID2LABEL),
                                         label2id=dict(LABEL2ID))
     if dropout is not None:  # BERT-style and XLM-R configs share these names
@@ -234,7 +236,9 @@ def make_collate(tokenizer):
     import torch
 
     def collate(items):
+        # take the labels out before padding the token fields, then add them back as one tensor
         labels = [it.pop("labels") for it in items] if "labels" in items[0] else None
+        # pad to the longest tweet in THIS batch; the attention mask marks padding with 0 so the model ignores it
         batch = tokenizer.pad(items, padding="longest", return_tensors="pt")
         if labels is not None:
             batch["labels"] = torch.tensor(labels, dtype=torch.long)
@@ -256,6 +260,7 @@ def predict_ids(model, loader, device, fp16: bool = False) -> List[int]:
             batch = {k: v.to(device) for k, v in batch.items() if k != "labels"}
             with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=use_amp):
                 logits = model(**batch).logits
+            # the predicted class is the one with the highest score (no softmax needed for that)
             preds.extend(logits.argmax(dim=-1).tolist())
     return preds
 

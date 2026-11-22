@@ -3,6 +3,7 @@ from collections import Counter
 
 
 def _duplicates(uids):
+    """Sorted list of the uids that appear more than once."""
     return sorted(u for u, n in Counter(uids).items() if n > 1)
 
 

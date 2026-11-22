@@ -137,15 +137,18 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: Transforme
     t0 = time.time()
     set_seed(seed)
     device = resolve_device(cfg.device)
+    # mixed precision (float16) only on a GPU; it saves memory and time there, and is not used on the CPU
     use_amp = cfg.fp16 and device.type == "cuda"
 
     tokenizer = tokenizer or load_tokenizer(cfg.model_name)
     train_texts, dev_texts = list(train_df[TEXT_COL]), list(dev_df[TEXT_COL])
     dev_labels = list(dev_df["label"])
+    # the max sequence length comes from TRAIN subword lengths only; dev truncation is just counted for the log
     length_info = length_info or resolve_max_length(tokenizer, train_texts, cfg)
     max_len = length_info["max_length"]
     dev_trunc = count_truncated(token_lengths(tokenizer, dev_texts), max_len)
 
+    # tokenise once up front; padding happens later, per batch (see make_collate)
     train_ds = EncodedTweets(tokenizer, train_texts, list(train_df["label"]), max_len)
     dev_ds = EncodedTweets(tokenizer, dev_texts, dev_labels, max_len)
     collate = make_collate(tokenizer)
@@ -155,9 +158,12 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: Transforme
     dev_loader = DataLoader(dev_ds, batch_size=cfg.eval_batch_size, shuffle=False, collate_fn=collate)
 
     set_seed(seed)  # the classifier head is initialised from the seed, independent of tokenisation work above
+    # pretrained encoder + a new, randomly initialised 3-class classification layer on top
     model = load_model(cfg.model_name, cfg.dropout).to(device)
     n_params = sum(p.numel() for p in model.parameters())
 
+    # AdamW with two parameter groups: weight decay for ordinary weights, none for biases and LayerNorm
+    # (the usual practice when fine-tuning BERT-style models)
     no_decay = ("bias", "LayerNorm.weight", "layer_norm.weight", "LayerNorm.bias")
     groups = [
         {"params": [p for n, p in model.named_parameters() if not any(k in n for k in no_decay)],
@@ -165,25 +171,35 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: Transforme
         {"params": [p for n, p in model.named_parameters() if any(k in n for k in no_decay)], "weight_decay": 0.0},
     ]
     opt = torch.optim.AdamW(groups, lr=cfg.lr)
+    # optimiser updates per epoch: batches / grad_accum_steps, rounded UP (-(-a // b) is ceiling division)
     steps_per_epoch = max(1, -(-len(train_loader) // cfg.grad_accum_steps))
     total_steps = steps_per_epoch * cfg.epochs
     from transformers import get_linear_schedule_with_warmup
 
+    # learning rate rises from 0 to cfg.lr over the first warmup_ratio of all steps, then falls linearly to 0.
+    # Because the schedule depends on the total number of epochs, a run cannot simply be continued for more epochs.
     sched = get_linear_schedule_with_warmup(opt, int(cfg.warmup_ratio * total_steps), total_steps)
+    # scales the loss so small float16 gradients do not round to zero (does nothing when use_amp is False)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
+    # remember the best epoch so far (judged by dev weighted F1)
     best = {"f1": -1.0, "epoch": 0, "state": None}
     history, bad_epochs = [], 0
     for epoch in range(1, cfg.epochs + 1):
-        model.train()
+        model.train()  # dropout on
         total, n = 0.0, 0
         opt.zero_grad(set_to_none=True)
         for step, batch in enumerate(train_loader, start=1):
             batch = {k: v.to(device) for k, v in batch.items()}
+            # the batch includes "labels", so the Hugging Face model computes the cross-entropy loss itself
             with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=use_amp):
                 loss = model(**batch).loss
+            # gradient accumulation: gradients of several batches are added up before one update,
+            # which acts like a bigger batch; dividing the loss keeps the update the same size
             scaler.scale(loss / cfg.grad_accum_steps).backward()
+            # update every grad_accum_steps batches, and always after the last batch of the epoch
             if step % cfg.grad_accum_steps == 0 or step == len(train_loader):
+                # unscale first so gradient clipping sees the true gradient sizes
                 scaler.unscale_(opt)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.grad_clip)
                 scaler.step(opt)
@@ -193,6 +209,7 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: Transforme
             k = len(batch["labels"])
             total += loss.item() * k
             n += k
+        # after each epoch, score the model on the dev set
         _, m = _evaluate(model, dev_loader, device, cfg.fp16, dev_labels)
         history.append({"epoch": epoch, "train_loss": round(total / n, 4), "dev_weighted_f1": round(m["weighted_f1"], 4),
                         "dev_macro_f1": round(m["macro_f1"], 4), "dev_accuracy": round(m["accuracy"], 4),
@@ -202,11 +219,13 @@ def train_one_seed(train_df: pd.DataFrame, dev_df: pd.DataFrame, cfg: Transforme
             print(f"  seed {seed} epoch {epoch:2d}  loss {h['train_loss']:.4f}  dev wF1 {h['dev_weighted_f1']:.4f}"
                   f"  macroF1 {h['dev_macro_f1']:.4f}  acc {h['dev_accuracy']:.4f}  ({time.time() - t0:.0f}s)")
         if m["weighted_f1"] > best["f1"]:
+            # new best epoch: keep a copy of the weights on the CPU, so the copy takes no GPU memory
             best = {"f1": m["weighted_f1"], "epoch": epoch,
                     "state": {k: v.detach().to("cpu", copy=True) for k, v in model.state_dict().items()}}
             bad_epochs = 0
         else:
             bad_epochs += 1
+            # early stopping: no dev improvement for `patience` epochs in a row
             if bad_epochs >= cfg.patience:
                 break
 

@@ -126,6 +126,7 @@ def validate_manifest(m: dict) -> dict:
 
 
 def load_manifest(path) -> dict:
+    """Read and structure-check the frozen manifest (configs/transformer_frozen_checkpoints.json)."""
     return validate_manifest(json.loads(Path(path).read_text(encoding="utf-8")))
 
 
@@ -181,6 +182,8 @@ def check_run_info(manifest: dict, repo_root: Path) -> dict:
 
 # ================================================================= inference ===
 def resolve_inference_device(inference: dict):
+    """The device fixed in the manifest. If it says cuda and there is no GPU, stop instead of quietly using the CPU,
+    so inference always runs with the frozen settings."""
     import torch
 
     name = inference["device"]
@@ -210,6 +213,7 @@ def predict_with_checkpoint(ckpt_dir: Path, texts, max_length: int, inference: d
 
 
 def read_frozen_dev_predictions(path) -> pd.DataFrame:
+    """A frozen dev prediction file; refuses any column layout other than uid,label,pred."""
     df = pd.read_csv(path)
     if list(df.columns) != ["uid", "label", "pred"]:
         raise ProtocolError(f"{path}: expected columns uid,label,pred")
@@ -278,6 +282,7 @@ NAMES = {"mbert": "mBERT", "xlmr": "XLM-R"}
 
 
 def render_report(ctx: dict) -> str:
+    """The Markdown report (transformer_final_test_report.md) built from the computed metrics in `ctx`."""
     agg, per_run, n, man = ctx["aggregate"], ctx["per_run"], ctx["n_test"], ctx["manifest"]
     L = []
     add = L.append
@@ -439,6 +444,7 @@ def make_figure(fig_dir: Path, aggregate: dict) -> list:
 
 # ================================================================ orchestration ===
 def environment_info(infos: dict) -> dict:
+    """Python, OS, library versions and GPU name, saved in integrity_manifest.json so the run can be described later."""
     info = {"python": platform.python_version(), "platform": platform.platform(), "numpy": np.__version__, "pandas": pd.__version__}
     for mod in ("sklearn", "torch", "transformers", "tokenizers"):
         try:

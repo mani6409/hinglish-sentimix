@@ -48,11 +48,14 @@ NEUTRAL = LABELS.index("neutral")
 
 
 def variant_words():
+    """Every non-canonical spelling listed in configs/hinglish_variants.json (for example "acha", "accha")."""
     cfg = json.loads((ROOT / "configs" / "hinglish_variants.json").read_text(encoding="utf-8"))
     return {v for k, vs in cfg.items() if not k.startswith("_") for v in vs}
 
 
 def flags(df, variants):
+    """One True/False column per automatic flag (negation word, spelling variant, truncated, URL, repeated letters,
+    emoji) for every tweet in `df`. Simple pattern checks: they point at possible error causes, they do not prove them."""
     toks = df["text"].str.lower().str.replace("’", "'").str.split()
     out = pd.DataFrame(index=df.index)
     out["negation_word"] = toks.apply(lambda t: any(w in NEGATION for w in t))

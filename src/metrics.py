@@ -16,6 +16,10 @@ LABELS = ["negative", "neutral", "positive"]  # fixed order, used everywhere
 
 
 def _check_labels(y_true, y_pred):
+    """Stop early on bad input: different lengths, empty lists, or a label outside LABELS.
+
+    Without this check a typo such as "Positive" would silently lower the score instead of raising an error.
+    """
     if len(y_true) != len(y_pred):
         raise ValueError(f"length mismatch: {len(y_true)} true vs {len(y_pred)} predicted")
     if len(y_true) == 0:

@@ -43,10 +43,13 @@ class ConfirmationRequired(ProtocolError):
 
 # ============================================================== small helpers ===
 def utc_now() -> str:
+    """Current UTC time as an ISO string, used to time-stamp each protocol stage."""
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def md5_file(path) -> str:
+    """MD5 fingerprint of a file, read in 1 MB chunks. Used to prove a frozen file did not change
+    (an integrity check, not a security measure)."""
     h = hashlib.md5()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -71,10 +74,12 @@ def atomic_write(path, data) -> None:
 
 
 def atomic_write_json(path, obj) -> None:
+    """`atomic_write` of `obj` as indented JSON."""
     atomic_write(path, json.dumps(obj, indent=2) + "\n")
 
 
 def csv_text(header, rows) -> str:
+    """A CSV file's content as one string ("\\n" line endings), so it can be written atomically."""
     buf = io.StringIO(newline="")
     w = csv.writer(buf, lineterminator="\n")
     w.writerow(header)
@@ -136,6 +141,7 @@ def validate_predictions(expected_uids, pred_uids, preds, what: str = "predictio
 
 
 def read_predictions_csv(path):
+    """Read a saved uid,pred test-prediction file back. Returns (list of int uids, list of labels)."""
     with open(path, encoding="utf-8", newline="") as f:
         r = csv.reader(f)
         header = next(r)

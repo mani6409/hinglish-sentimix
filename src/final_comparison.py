@@ -37,11 +37,14 @@ def _from_prediction_files(files) -> dict:
 
 
 def _from_summary(summary: dict, key: str) -> dict:
+    """Mean, sd and run count for one system, read from a frozen test evaluation's metrics_summary.json."""
     s = summary[key]
     return ({f"{k}_mean": s[k]["mean"] for k in SCALARS} | {f"{k}_sd": s[k]["std"] for k in SCALARS} | {"n_runs": len(s[SCALARS[0]]["values"])})
 
 
 def build_rows(results: Path) -> list:
+    """One dict per (system, split): baselines, BiLSTM, transformers, Indic models and the zero-shot LLM.
+    A system whose result files are missing gets a row with status "pending" or "not run" instead of numbers."""
     rows = []
     pred = results / "predictions"
 
@@ -131,6 +134,7 @@ def build_rows(results: Path) -> list:
 
 
 def build(results: Path = ROOT / "results", write: bool = True) -> pd.DataFrame:
+    """The comparison table with a fixed column order, numbers rounded to 4 decimals; written to CSV if `write`."""
     df = pd.DataFrame(build_rows(Path(results))).reindex(columns=COLUMNS)
     num = [c for c in COLUMNS if c.endswith(("_mean", "_sd"))]
     df[num] = df[num].astype(float).round(4)

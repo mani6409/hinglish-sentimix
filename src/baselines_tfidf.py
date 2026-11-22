@@ -26,6 +26,14 @@ WHO = "Mani"
 DATA_VERSION = "raw (tokens joined by spaces)"
 C_GRID = [0.1, 1.0, 10.0]
 
+# Three feature sets. Each value is a function that builds FRESH vectorizers, so no fitted state is shared
+# between experiments.
+# - word_1-2: single words and word pairs. token_pattern=\S+ splits on spaces only, so emojis and
+#   punctuation become features too (the default pattern would drop them).
+# - char_2-5: character n-grams of length 2 to 5 inside word boundaries ("char_wb"). These can match
+#   different spellings of the same Hindi word, for example "accha" and "acha" share "ch", "ha" and "cha".
+# - word+char: both sets side by side.
+# min_df=2 drops features seen in only one train tweet; sublinear_tf uses 1 + log(count) instead of the raw count.
 VECTORIZERS = {
     "word_1-2": lambda: [TfidfVectorizer(analyzer="word", ngram_range=(1, 2), min_df=2,
                                          sublinear_tf=True, lowercase=True, token_pattern=r"\S+")],
@@ -40,6 +48,13 @@ VECTORIZERS = {
 
 
 def fit_features(make, train_text, dev_text):
+    """Build TF-IDF matrices for train and dev.
+
+    `make` is one of the VECTORIZERS functions. Vocabulary and IDF weights are learned with
+    `fit_transform` on TRAIN only; dev is only `transform`ed, so dev words never enter the vocabulary.
+    With two vectorizers (word+char) the two matrices are joined column-wise.
+    Returns (X_train, X_dev) as sparse CSR matrices.
+    """
     vecs = make()
     Xtr = hstack([v.fit_transform(train_text) for v in vecs]).tocsr()  # fit on train only
     Xdv = hstack([v.transform(dev_text) for v in vecs]).tocsr()
@@ -47,6 +62,7 @@ def fit_features(make, train_text, dev_text):
 
 
 def log_row(model, settings, dev_score, notes, lesson):
+    """Append one row (the original 9 columns) to results/experiment_log.csv."""
     path = ROOT / "results" / "experiment_log.csv"
     with open(path, "a", newline="", encoding="utf-8") as f:
         csv.writer(f).writerow([date.today().isoformat(), WHO, model, DATA_VERSION, settings,
@@ -54,7 +70,9 @@ def log_row(model, settings, dev_score, notes, lesson):
 
 
 def main():
+    """Score the majority-class floor, then each feature set with every C in C_GRID; keep the best C per set."""
     set_seed(DEFAULT_SEED)
+    # raw text: the TF-IDF baseline does not use src.preprocess
     tr, dv = load_split("train"), load_split("dev")
     (ROOT / "results" / "predictions").mkdir(parents=True, exist_ok=True)
     results = {}
@@ -69,6 +87,7 @@ def main():
         Xtr, Xdv = fit_features(make, tr["text"], dv["text"])
         grid = {}
         best = None
+        # C is the inverse regularisation strength: small C = simpler model, large C = fits train more closely
         for C in C_GRID:
             t0 = time.time()
             clf = LogisticRegression(C=C, max_iter=3000, random_state=DEFAULT_SEED)

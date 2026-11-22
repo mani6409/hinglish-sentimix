@@ -60,7 +60,8 @@ _LABEL_RE = re.compile(r"\b(positive|negative|neutral)\b")
 
 
 def build_prompt(tweet, version="v2"):
-    """Put the tweet into the prompt (v1 = short, v2 = explains Hinglish to the model)."""
+    """Put the tweet into the prompt (v1 = short, v2 = explains Hinglish to the model).
+    Raises ValueError for an unknown prompt version."""
     if version not in PROMPTS:
         raise ValueError(f"unknown prompt version {version!r}; choose from {sorted(PROMPTS)}")
     return PROMPTS[version].format(tweet=str(tweet).strip())
@@ -113,12 +114,14 @@ def make_hf_backend(model_name, max_new_tokens=8):
     revision = getattr(model.config, "_commit_hash", None)
 
     def backend(prompt):
+        # wrap the prompt in the model's own chat format, as an instruction-tuned model expects
         messages = [{"role": "user", "content": prompt}]
         text = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = tok(text, return_tensors="pt")
         with torch.no_grad():
             out = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False,
                                  pad_token_id=tok.eos_token_id)
+        # `generate` returns prompt + answer; keep only the newly generated tokens
         return tok.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
 
     backend.model_revision = revision

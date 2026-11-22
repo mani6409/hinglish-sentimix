@@ -7,6 +7,8 @@ NOTE ON ISSUE #5: the issue asks to reuse the shared Transformer pipeline (src/t
 is not on `main` yet. This module therefore contains a small self-contained loop built on the same shared project
 pieces (src.data, src.metrics, src.seed, src.preprocess, the `uid,label,pred` CSV format). When the shared pipeline
 lands, `fine_tune` is the one function to replace by a call to it.
+(Later update: src/train_transformer.py is now in the repository, but the reported MuRIL and IndicBERT dev results
+were produced with the loop in this file, so it has been kept.)
 
 Rules followed (docs/daily_plan.md): the TEST set is never loaded here; model selection (best epoch) uses the dev
 set only; 3-class labels in src.metrics.LABELS order; weighted F1 from src.metrics is the reported score.
@@ -65,7 +67,10 @@ def _batches(enc, labels, order, batch_size):
 
 
 def _encode(tokenizer, texts, max_len):
-    """Turn all texts into subword ids, padded or cut to max_len. Returns (tensors, torch)."""
+    """Turn all texts into subword ids, padded or cut to max_len. Returns (tensors, torch).
+
+    Unlike src.transformer_utils (dynamic padding per batch), every row here has the same fixed length.
+    """
     import torch
 
     enc = tokenizer(list(texts), padding="max_length", truncation=True, max_length=max_len, return_tensors="pt")
@@ -110,6 +115,8 @@ def fine_tune(model_name, train_df, dev_df, *, seed=DEFAULT_SEED, max_len=128, b
     y_tr = torch.tensor([LABEL2ID[x] for x in train_df["label"]])
     y_dev = list(dev_df["label"])
 
+    # same optimiser recipe as src.train_transformer: AdamW, no weight decay on biases and LayerNorm,
+    # linear warm-up then linear decay, mixed precision on GPU only
     no_decay = ("bias", "LayerNorm.weight", "layer_norm", "LayerNorm.bias")
     groups = [
         {"params": [p for n, p in model.named_parameters() if not any(k in n for k in no_decay)],
@@ -121,6 +128,7 @@ def fine_tune(model_name, train_df, dev_df, *, seed=DEFAULT_SEED, max_len=128, b
     sched = get_linear_schedule_with_warmup(opt, int(warmup_ratio * steps), steps)
     use_amp = device == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
+    # seeded generator, so the shuffling order is the same on every rerun
     rng = np.random.default_rng(seed)
 
     history, best = [], {"weighted_f1": -1.0}
@@ -148,6 +156,7 @@ def fine_tune(model_name, train_df, dev_df, *, seed=DEFAULT_SEED, max_len=128, b
                         "dev_weighted_f1": round(m["weighted_f1"], 4), "dev_macro_f1": round(m["macro_f1"], 4),
                         "dev_accuracy": round(m["accuracy"], 4)})
         log(f"epoch {epoch}: {history[-1]}")
+        # keep the predictions of the best dev epoch (there is no early stopping here: all epochs run)
         if m["weighted_f1"] > best["weighted_f1"]:
             best = {"weighted_f1": m["weighted_f1"], "epoch": epoch, "pred": pred, "metrics": m}
             if checkpoint_dir:

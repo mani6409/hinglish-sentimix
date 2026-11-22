@@ -312,7 +312,8 @@ def agreement_table(wrong):
 
 
 def wilson(k, n, z=1.96):
-    """95% confidence range for a rate k out of n (works better than the simple formula when n is small)."""
+    """95% confidence range for a rate k out of n (works better than the simple formula when n is small).
+    The Wilson interval always stays inside [0, 1]. Returns (nan, nan) for n = 0."""
     if n == 0:
         return (np.nan, np.nan)
     p = k / n
