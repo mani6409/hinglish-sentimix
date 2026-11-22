@@ -72,25 +72,27 @@ DATA_VERSIONS = {
 
 # ------------------------------------------------------------ paths ----
 def prediction_path(out_dir, run_name: str, seed: int) -> Path:
+    """Path of the dev predictions file for one seed."""
     return Path(out_dir) / "predictions" / f"transformer_{run_name}_seed{seed}_dev.csv"
 
 
 def scores_path(out_dir, run_name: str) -> Path:
+    """Path of the scores JSON for the whole run."""
     return Path(out_dir) / f"transformer_{run_name}_dev_scores.json"
 
 
 def checkpoint_dir(out_dir, run_name: str, seed: int) -> Path:
+    """Folder for the saved model and tokenizer of one seed."""
     return Path(out_dir) / "checkpoints" / f"transformer_{run_name}_seed{seed}"
 
 
 def default_run_name(cfg: TransformerConfig) -> str:
-    """For example "mbert_clean"; used when --run-name is not given."""
+    """Default run name, for example "xlmr_normalized"."""
     return f"{model_slug(cfg.model_name)}_{cfg.mode}"
 
 
 def find_existing_outputs(out_dir, run_name: str, seeds: List[int], save_checkpoints: bool = True) -> List[str]:
-    """Everything this run would write that already exists (files, and log rows for this run name and seed).
-    A non-empty list makes run_experiment stop before training, unless --overwrite is given."""
+    """Output files and log rows of this run that already exist, so we can stop before overwriting."""
     out = Path(out_dir)
     planned = [scores_path(out, run_name)] + [prediction_path(out, run_name, s) for s in seeds]
     if save_checkpoints:
@@ -117,7 +119,7 @@ def resolve_max_length(tokenizer, train_texts: List[str], cfg: TransformerConfig
 
 # ------------------------------------------------------- one training ----
 def _evaluate(model, loader, device, fp16, true_labels):
-    """Predict every row of `loader` and score it. Returns (predicted label names, compute_metrics dict)."""
+    """Predict a whole split and score it. Returns (predicted labels, metrics)."""
     pred = ids_to_labels(predict_ids(model, loader, device, fp16))
     return pred, compute_metrics(true_labels, pred)
 
@@ -338,6 +340,7 @@ def run_experiment(train_df, dev_df, cfg: TransformerConfig, seeds: List[int], o
 
 # -------------------------------------------------------------------- CLI ----
 def main(argv=None) -> dict:
+    """Read the settings, load train and dev, and run the experiment."""
     p = argparse.ArgumentParser(description="Fine-tune a transformer on the train split and evaluate on dev.")
     p.add_argument("--config", help="JSON file with TransformerConfig settings (default: built-in defaults)")
     p.add_argument("--model", help="checkpoint: mbert | xlmr | muril | indicbert | any Hub id or local folder")

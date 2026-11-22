@@ -1,0 +1,3 @@
+# Two commits (9661335, 048396e) were pushed from Kaggle with a wrong author email.
+# Map it to the real author so git log and git shortlog show the right name.
+Akankshakushwahaa <akankshakushwaha2314@gmail.com> <su-24013@sitare.org>

@@ -11,3 +11,7 @@ bilstm_full_raw,all,3,0.6105,0.0041
 bilstm_full_raw,low,3,0.6106,0.0084
 bilstm_full_raw,medium,3,0.6022,0.005
 bilstm_full_raw,high,3,0.6174,0.0081
+muril,all,2,0.6266,0.0068
+muril,low,2,0.616,0.0013
+muril,medium,2,0.6213,0.0102
+muril,high,2,0.6405,0.0109

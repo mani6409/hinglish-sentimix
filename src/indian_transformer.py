@@ -59,7 +59,7 @@ def token_length_report(tokenizer, texts, percentiles=(50, 90, 95, 99, 100)):
 
 # ---- training --------------------------------------------------------------------------------------------
 def _batches(enc, labels, order, batch_size):
-    """Yield (input batch, label batch) pairs, taking rows in the shuffled `order`."""
+    """Give batches of tweets and their labels, in the order given by `order`."""
     for i in range(0, len(order), batch_size):
         idx = order[i:i + batch_size]
         batch = {k: v[idx] for k, v in enc.items()}
@@ -67,10 +67,9 @@ def _batches(enc, labels, order, batch_size):
 
 
 def _encode(tokenizer, texts, max_len):
-    """Tokenise all texts at once, padded and truncated to exactly `max_len` subwords.
+    """Turn all texts into subword ids, padded or cut to max_len. Returns (tensors, torch).
 
     Unlike src.transformer_utils (dynamic padding per batch), every row here has the same fixed length.
-    Returns (dict of tensors, the torch module).
     """
     import torch
 
@@ -79,7 +78,7 @@ def _encode(tokenizer, texts, max_len):
 
 
 def predict(model, enc, batch_size, device):
-    """Predicted class ids (numpy array) for every row of `enc`, in order. Eval mode, no gradients."""
+    """Predicted label ids for all tweets, in the same order. Dropout is off."""
     import torch
 
     model.eval()

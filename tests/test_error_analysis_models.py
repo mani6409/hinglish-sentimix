@@ -121,3 +121,39 @@ def test_manual_sample_has_empty_hand_label_columns():
     sample = ea.manual_sample(table, summary, n=3)
     assert (sample["manual_category"] == "").all() and len(sample) >= 1
     assert sample["best_setting"].nunique() == 1
+
+
+def test_rerun_keeps_existing_hand_labels(tmp_path):
+    dev, s, cmi, edges = _tiny()
+    table, _ = ea.build_error_table(dev, s, cmi, edges)
+    summary = ea.model_summary(s, {"m1": 0.5, "m2": 0.4})
+    fresh = ea.manual_sample(table, summary, n=3)
+    path = tmp_path / "sample.csv"
+    labelled = fresh.copy()
+    labelled["manual_category"] = ["negation"] + [""] * (len(fresh) - 1)
+    labelled["notes"] = ["checked"] + [""] * (len(fresh) - 1)
+    # an old labelled row that is not in the new sample must survive as well
+    extra = labelled.iloc[[0]].copy()
+    extra["uid"] = 999999
+    extra["manual_category"] = "sarcasm_irony"
+    labelled = pd.concat([labelled, extra], ignore_index=True)
+    labelled.to_csv(path, index=False)
+
+    again, n_kept = ea.keep_existing_labels(fresh, path)
+    assert n_kept == 2
+    first_uid = labelled.iloc[0]["uid"]
+    assert again.loc[again["uid"] == first_uid, "manual_category"].iloc[0] == "negation"
+    assert again.loc[again["uid"] == first_uid, "notes"].iloc[0] == "checked"
+    assert again.loc[again["uid"] == 999999, "manual_category"].iloc[0] == "sarcasm_irony"
+
+
+def test_missing_or_unlabelled_file_leaves_sample_unchanged(tmp_path):
+    dev, s, cmi, edges = _tiny()
+    table, _ = ea.build_error_table(dev, s, cmi, edges)
+    summary = ea.model_summary(s, {"m1": 0.5, "m2": 0.4})
+    fresh = ea.manual_sample(table, summary, n=3)
+    same, n = ea.keep_existing_labels(fresh, tmp_path / "does_not_exist.csv")
+    assert n == 0 and same.equals(fresh)
+    fresh.to_csv(tmp_path / "empty.csv", index=False)
+    same, n = ea.keep_existing_labels(fresh, tmp_path / "empty.csv")
+    assert n == 0 and (same["manual_category"] == "").all()

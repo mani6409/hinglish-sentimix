@@ -61,12 +61,12 @@ How the flags are detected (all are simple rules, not understanding):
 - **Spelling variants are not clearly linked to errors.** 13.8% of errors against 12.0% of correct tweets is not a reliable difference. The flag only detects the 57 variants in Ekta's dictionary, so it covers a small part of all spelling variation; the result is weak evidence either way for the transliteration part of our research question.
 - Truncated tweets, URLs and repeated letters show no link to errors.
 
-## 5. Categories read by hand (first pass)
-A random sample of 60 errors from the best baseline (seed 42) was read and each given one main category. This is one reader's judgement and has not yet been checked by a second person. With 60 tweets, each percentage is uncertain by about ±10 points.
+## 5. Hand-checked categories
+A random sample of 60 errors from the best baseline (seed 42) was given one main category each. One reader (Mani) then went through all 60 tweets and kept every category unchanged. No second reader used this scheme, so there is no agreement figure. With 60 tweets, each percentage is uncertain by about ±10 points.
 
 **How the 60 tweets were chosen.** `reading_sample_uids` in `src/error_analysis.py` draws 60 of the best baseline's dev errors (rows in dev-file order, `random_state=42`); `error_analysis` stops if `error_categories_manual.csv` is not exactly that sample, and a test checks the same.
 
-**Original labels are kept fixed.** `results/error_categories_manual.csv` holds the first reader's labels exactly as first written (MD5 `7126ecf962eff729071dc410b7310dc3`); it must not be edited. A second reader works independently on `results/error_categories_reviewer2_template.csv` (the same 60 tweets, with an empty `category` column) using the same eight categories, and saves `uid,category` as a separate file. Then `python -m src.label_agreement <their file>` prints raw agreement, Cohen's kappa and the list of tweets where the two readers differ. The script refuses a file whose uids differ from the original 60. Kappa corrects raw agreement for the agreement expected by chance; with eight categories of very different size it is the fairer number to report next to raw agreement.
+**Original labels are kept fixed.** `results/error_categories_manual.csv` holds the categories exactly as assigned; because the check changed nothing, it is also the accepted version (MD5 `7126ecf962eff729071dc410b7310dc3`); it must not be edited. A second reader can work independently on `results/error_categories_reviewer2_template.csv` (the same 60 tweets, with an empty `category` column) using the same eight categories, and saves `uid,category` as a separate file. Then `python -m src.label_agreement <their file>` prints raw agreement, Cohen's kappa and the list of tweets where the two readers differ. The script refuses a file whose uids differ from the original 60. Kappa corrects raw agreement for the agreement expected by chance; with eight categories of very different size it is the fairer number to report next to raw agreement.
 
 | Category | Tweets | Share | What it means |
 |---|---|---|---|
@@ -85,12 +85,12 @@ Reading:
 - Only 1 of the 60 sits in the code-mixing category. In this sample, errors are not mainly caused by the mixing itself, which fits the flat CMI result in `docs/cmi_analysis.md`.
 
 ## 6. For the team
-- **Second reader (Ekta):** fill `results/error_categories_reviewer2_template.csv` without looking at `error_categories_manual.csv`, save it under a new name, and run `python -m src.label_agreement <file>`. Report raw agreement and Cohen's kappa in the report.
+- **Second reader:** Ekta labelled the same 60 tweets with a different scheme (13 tone labels, `results/error_categories_reviewer2_ekta.csv`), so `python -m src.label_agreement` cannot compare the two sets. If a reader relabels them with the eight categories, run `python -m src.label_agreement <file>` and report raw agreement and Cohen's kappa.
 - **Everyone:** when your model's dev predictions are ready, save them as `results/predictions/<model>_dev.csv` (columns `uid,label,pred`). `python -m src.cmi_evaluation` then scores them by CMI. `python -m src.error_analysis` currently reads only the three `tfidf_*_dev.csv` files and analyses one of them (`BEST`); analysing another model needs a small change to that script (not yet generic).
 - **Experiment log:** `results/experiment_log.csv` now has `dev_weighted_f1`, `dev_macro_f1` and `dev_accuracy` columns for all 16 runs (majority floor, three TF-IDF models, nine BiLSTM word+char runs, three BiLSTM word-only runs). They are recomputed from the dev prediction files by `python -m src.log_metrics`, which also checks them against the existing `dev_score` column (weighted F1) and against the macro F1 and accuracy written in the BiLSTM rows' notes; all 16 agree. The original columns are unchanged. After logging a new experiment, rerun the script to fill the new columns for that row.
 
 ## Limits
-- Dev set only; one model family; one reader for the hand categories.
+- Dev set only; one model family; hand categories checked by one reader, with no agreement figure.
 - The automatic flags are word lists, not understanding; "no" or "na" can be ordinary words.
 - Flag differences show association, not cause.
 - The negation flag matches whole words only, so it misses split contractions such as `don ’ t` (tokenised) and negation expressed without a listed word.

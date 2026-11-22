@@ -180,7 +180,7 @@ class TextEncoder:
 
     @classmethod
     def from_dict(cls, d: dict) -> "TextEncoder":
-        """Rebuild an encoder from `to_dict` output (used when loading a checkpoint)."""
+        """Rebuild the encoder that was saved by `to_dict()` (used when loading a checkpoint)."""
         return cls(Vocab(d["word_itos"]), Vocab(d["char_itos"]), d["max_words"], d["max_chars"],
                    d["lowercase_words"], d["lowercase_chars"], d["special_words"])
 
@@ -307,6 +307,7 @@ class CharCNN(nn.Module):
         self.out_dim = n_filters * len(self.kernel_sizes)
 
     def forward(self, chars: torch.Tensor) -> torch.Tensor:
+        """Input: character ids (B, T, C). Output: one vector per word (B, T, out_dim)."""
         B, T, C = chars.shape
         # treat every word of every tweet as its own short sequence of characters
         flat = chars.reshape(B * T, C)

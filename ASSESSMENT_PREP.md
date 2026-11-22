@@ -410,7 +410,9 @@ the same optimiser recipe (AdamW, warm-up and decay, fp16 on GPU), but:
 - **Fixed padding** to `max_len=96` for every tweet, instead of dynamic padding. 96 covers MuRIL's longest train
   tweet (91 subwords).
 - **Raw text** (default `--text-mode raw`), 3 epochs, lr 2e-5, **no early stopping**. The best dev epoch's
-  predictions are kept.
+  predictions are kept. The best epoch was 3 of 3 in every run, so the models may still have been improving.
+- The runs were done on a free Kaggle notebook with a T4 GPU, because the development PC has no NVIDIA GPU
+  (`docs/indian_transformer_results.md`).
 - IndicBERT: the original `ai4bharat/indic-bert` is gated on the Hugging Face Hub, so the reported run used
   **`ai4bharat/IndicBERTv2-MLM-only`** via `--checkpoint`. Only seed 42 exists.
 - `load_texts` **refuses** the test split on purpose.
@@ -485,11 +487,16 @@ on six **frozen** checkpoints (mBERT and XLM-R × seeds 42, 43, 44).
   letters and emoji. The all-models script flags negation, slang/informal, sarcasm cue (gold negative but the text
   looks positive), spelling variant, very short and high CMI. Both compare error rates with and without each flag
   (Bonferroni threshold / chi-square) and give a sample of errors to read by hand. **The flags are heuristics,
-  not proof of the cause.** In the all-models script, the seeds of one setting are merged by majority vote.
+  not proof of the cause.** In the all-models script, the seeds of one setting are merged by majority vote. It also
+  marks a tweet `label_noise_candidate` when at least 75% of the settings agree on the same *wrong* label. That
+  flagged 546 of 2,284 error tweets, too many to all be mislabelled, so it marks hard or context-dependent tweets too.
   - Main finding (`docs/baselines_tfidf.md`): almost all errors involve **neutral**. Negative↔positive swaps are
     rare. Annotator agreement in the original dataset was only 55% (Patwa et al.), which fits a fuzzy neutral
     boundary.
-- `src/label_agreement.py`: Cohen's kappa between two human readers' error categories.
+- `src/label_agreement.py`: computes Cohen's kappa between two human readers' error categories. **In practice
+  no agreement figure exists:** each 60-error sample was categorised and checked by **one reader**. A second reader
+  labelled tone with a different scheme, so the two cannot be compared (`docs/baseline_evaluation.md`,
+  `docs/error_analysis.md`). If asked, say the hand categories are single-reader and rough.
 - `src/transformer_comparison.py`: mean and sd per model, per-seed differences, and a **paired bootstrap**
   (both models scored on the *same* resampled tweets).
 - `src/final_comparison.py`: builds the results table in section 1 from saved files (nothing is retrained).
@@ -533,7 +540,10 @@ on six **frozen** checkpoints (mBERT and XLM-R × seeds 42, 43, 44).
   mix explains almost none of it.
 - **Only 3 seeds**, so standard deviations are rough. One 3,000-tweet test set has about ±0.01 F1 sampling error.
 - **Dev scores are optimistic** (best epoch and lr chosen on dev, and seed 42 used for the lr choice).
-- **The neutral class is the main source of error.** Low annotator agreement (55%) limits any model.
+- **The neutral class is the main source of error.** Low annotator agreement (55%) limits any model. The baseline
+  error sample suggests that about a quarter of errors may be a labelling problem rather than a model problem
+  (`docs/baseline_evaluation.md`, one reader, not proven).
+- **Hand error categories come from one reader**, with no agreement score.
 - **Normalisation dictionary is small and hand-made.** It cannot use context or language tags, and it did not
   improve results.
 - **MuRIL, IndicBERT, TF-IDF and zero-shot have no test evaluation.** MuRIL and IndicBERT also used a different
