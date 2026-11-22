@@ -4,7 +4,7 @@ Code: `src/zero_shot_llm.py`. Tests: `tests/test_zero_shot_llm.py` (16, fake bac
 
 ## Model used (and what this result is NOT)
 - **Model:** `Qwen/Qwen2.5-0.5B-Instruct` (Hugging Face), revision `7ae557604adf67be50417f59c2c2f167def9a775`, run locally on the CPU of an ordinary laptop (Intel i5-1334U, no GPU), greedy decoding (deterministic), run on 2026-11-21.
-- **Why this model:** no API key or GPU was available. A 0.5-billion-parameter model is tiny and cheap. **These numbers say how a very small open model behaves; they do not say how a strong LLM (for example a Claude, GPT or Llama-70B class model) would do on Hinglish.** The report must not present them as "the LLM result" for the project without that qualification. The Anthropic backend (`--backend anthropic`) is implemented and reads the key only from the environment variable `ANTHROPIC_API_KEY`, but it has **not been run** (no key), so it has only been tested with a fake client in the unit tests.
+- **Why this model:** no API key or GPU was available. A 0.5-billion-parameter model is tiny and cheap. **These numbers say how a very small open model behaves; they do not say how a strong LLM (for example a large hosted model or a 70-billion-parameter open model) would do on Hinglish.** The report must not present them as "the LLM result" for the project without that qualification. An optional hosted-API backend is implemented in `src/zero_shot_llm.py` (see its `--backend` option). It reads its key only from an environment variable, never from the repository, but it has **not been run** (no key), so it has only been tested with a fake client in the unit tests.
 - No training and no fine-tuning: the model gets an instruction and the tweet only. Dev labels are used only afterwards to score answers. No credentials are stored in the repository.
 
 ## Prompts
@@ -33,7 +33,7 @@ For reference, existing supervised models on the **same 200 tweets** (weighted F
 - Even with v2 the model rarely says negative (28 predictions for 50 true negatives; recall 0.20) and leans to neutral (134 predictions for 84 true neutrals).
 
 ## Latency and cost
-Mean time per tweet on this CPU: 3.6 s (v2) and 4.2 s (v1); wall time 12 and 14 minutes for 200 tweets, including loading the model. Machine load varied, so treat these as rough. Cost: no API cost (local model; the 1 GB download is the only resource). Extrapolating, the full 3,000-tweet dev set would take roughly three hours per prompt on this CPU (estimate, not run). An API model would need token counts: the Anthropic backend records them in `api_token_usage` in the meta file.
+Mean time per tweet on this CPU: 3.6 s (v2) and 4.2 s (v1); wall time 12 and 14 minutes for 200 tweets, including loading the model. Machine load varied, so treat these as rough. Cost: no API cost (local model; the 1 GB download is the only resource). Extrapolating, the full 3,000-tweet dev set would take roughly three hours per prompt on this CPU (estimate, not run). An API model would need token counts: the API backend records them in `api_token_usage` in the meta file.
 
 ## Limitations
 - Tiny model, one run, 200 tweets, two prompts; no repetition (greedy decoding is deterministic, so a rerun gives the same answers).
@@ -45,6 +45,7 @@ Mean time per tweet on this CPU: 3.6 s (v2) and 4.2 s (v1); wall time 12 and 14 
 python -m src.zero_shot_llm --backend hf --model Qwen/Qwen2.5-0.5B-Instruct --n 200 --prompt v2
 python -m src.zero_shot_llm --backend hf --model Qwen/Qwen2.5-0.5B-Instruct --n 200 --prompt v1 --out-suffix _v1
 # with an API model (key in the environment, not in the repo):
-#   set ANTHROPIC_API_KEY=...   then   python -m src.zero_shot_llm --backend anthropic --model <model id> --n 200
+#   set the API-key environment variable named in src/zero_shot_llm.py, then use the API backend, e.g.
+#   python -m src.zero_shot_llm --backend <api backend> --model <model id> --n 200
 ```
 Runs resume if interrupted. Committed files: `results/zero_shot_dev_predictions.csv` (primary prompt v2, `uid,label,pred`), `results/zero_shot_run_meta.json` (v2: model revision, prompt text, counts, metrics) and `results/zero_shot_run_meta_v1.json` (the v1 comparison row). The per-tweet raw model answers (`zero_shot_dev_raw_responses*.csv`) and the v1 predictions file are produced by the commands above but are not committed; rerun to regenerate them. The primary predictions file is read automatically by `src.error_analysis_models` the next time it is run (it covers only 200 tweets, which that script handles).
