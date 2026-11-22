@@ -15,7 +15,8 @@ Outputs (results/):
   error_flag_rates_models.csv        per flag: error rate with vs without the flag (all settings pooled), chi-square p
   error_agreement.csv                pairwise overlap of the wrong tweets of two settings
   error_cmi_rates.csv                error rate per setting and CMI bucket (95% Wilson interval)
-  error_manual_sample.csv            stratified sample of errors with an EMPTY column for hand labels
+  error_manual_sample.csv            stratified sample of errors with a column for hand labels; labels already in
+                                     the file are kept on a rerun (matched by uid), never blanked
 
 Important honesty note: the "flags" are automatic keyword/pattern heuristics. They mark candidates for a
 category; they are NOT the category itself. "context_dependent" and the final "annotation error" decision
@@ -340,7 +341,8 @@ def cmi_error_rates(settings, cmi_table, edges):
 
 def manual_sample(errors, summary, n=60, seed=DEFAULT_SEED):
     """Stratified random sample of errors of the best setting, covering every (gold -> predicted) pair in
-    proportion (at least 3 per pair when available). The hand-label columns are left empty on purpose."""
+    proportion (at least 3 per pair when available). The hand-label columns are left empty on purpose;
+    keep_existing_labels() copies earlier labels back in before the file is written."""
     best = summary.iloc[0]["setting"]
     pool = errors[errors["wrong_settings"].str.split(";").apply(lambda s: best in s)].copy()
     pool["pair"] = pool["label"] + "->" + pool["most_common_wrong_pred"]
@@ -355,6 +357,36 @@ def manual_sample(errors, summary, n=60, seed=DEFAULT_SEED):
     sample["manual_category"] = ""  # to be filled by hand with one of MANUAL_CATEGORIES
     sample["notes"] = ""
     return sample
+
+
+def keep_existing_labels(sample, path):
+    """Carry hand labels over from an existing manual-sample file, matched by uid.
+
+    Without this, rerunning the script would blank the labels that a person has filled in. Rows of the old file
+    that have a label are kept: if the uid is in the new sample its label and notes are copied over; if it is not
+    (the best setting or the predictions changed), the whole labelled row is appended, so no label is ever lost.
+    Rows without a label are not kept. Returns (new_frame, number_of_labels_carried_over)."""
+    path = Path(path)
+    if not path.exists():
+        return sample, 0
+    old = pd.read_csv(path, keep_default_na=False)
+    if not {"uid", "manual_category"}.issubset(old.columns):
+        return sample, 0
+    old = old[old["manual_category"].astype(str).str.strip() != ""].drop_duplicates("uid", keep="last")
+    if old.empty:
+        return sample, 0
+    sample = sample.copy()
+    old_notes = old.set_index("uid")["notes"] if "notes" in old.columns else pd.Series(dtype=object)
+    labels = old.set_index("uid")["manual_category"]
+    in_new = sample["uid"].isin(labels.index)
+    sample.loc[in_new, "manual_category"] = sample.loc[in_new, "uid"].map(labels).to_numpy()
+    if len(old_notes):
+        sample.loc[in_new, "notes"] = sample.loc[in_new, "uid"].map(old_notes).fillna("").to_numpy()
+    extra = old[~old["uid"].isin(sample["uid"])]
+    if len(extra):
+        extra = extra.reindex(columns=sample.columns, fill_value="")
+        sample = pd.concat([sample, extra], ignore_index=True).sort_values("uid")
+    return sample, len(old)
 
 
 def file_level_scores(files, dev):
@@ -396,8 +428,10 @@ def main():
     rates.to_csv(RESULTS / "error_flag_rates_models.csv", index=False)
     agreement_table(wrong).to_csv(RESULTS / "error_agreement.csv", index=False)  # which settings fail on the same tweets
     cmi_error_rates(settings, cmi_dev, edges).to_csv(RESULTS / "error_cmi_rates.csv", index=False)
-    # a sample of errors with empty columns, so people can label them by hand
-    manual_sample(errors, summary).to_csv(RESULTS / "error_manual_sample.csv", index=False)
+    manual_path = RESULTS / "error_manual_sample.csv"
+    sample, n_kept = keep_existing_labels(manual_sample(errors, summary), manual_path)
+    sample.to_csv(manual_path, index=False)
+    print(f"manual sample: {len(sample)} rows, {n_kept} existing hand labels kept")
 
     # step 5: print a short summary on the screen
     print(f"settings: {list(settings)}")

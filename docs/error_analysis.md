@@ -110,7 +110,22 @@ Usernames are replaced by `@USER`. These were chosen at random (seed fixed) amon
 | Unflagged | 23450 | negative → neutral | 25 of 27 | "@USER Modi ji Desh Ke corrupt officer on ko hatao ..." | Criticism without a strong sentiment word. |
 
 ### 8. Category counts in the 60-error sample (checked by one reader)
-`results/error_manual_sample.csv` holds 60 stratified errors of the best-scoring setting (MuRIL). Each row has one category from `MANUAL_CATEGORIES`. Every row was read and checked by a person (Akanksha); the `notes` column records this. There was a single reader, so no agreement between readers is reported.
+`results/error_manual_sample.csv` holds 60 stratified errors of the best-scoring setting (MuRIL). Each row has one category from `MANUAL_CATEGORIES`. The first suggestion for each category came from a language model; every row was then read and checked by a person (Akanksha), and the `notes` column records both steps. The column is called `manual_category` because the final value is the person's. There was a single reader, so no agreement between readers is reported.
+
+Rerunning `python -m src.error_analysis_models` keeps these labels: they are copied back by `uid` (`keep_existing_labels`), and a labelled row that is no longer in the new sample is appended instead of dropped. Back the file up anyway before changing the predictions or the best setting.
+
+**Names differ from the first reader's categories of the baseline analysis** (`results/error_categories_manual.csv`, `src/error_analysis.py`, `src/label_agreement.py`), and the two files cover **different tweets** (the baseline sample is from the best baseline, this one from MuRIL). They cannot be compared directly. The closest name pairs are:
+
+| This report | Baseline analysis |
+|---|---|
+| `context_dependent` | `implicit_context` |
+| `annotation_error_candidate` | `label_questionable` |
+| `transliteration_spelling` | `transliteration_variants` |
+| `sarcasm_irony`, `slang_informal`, `negation`, `code_mixing` | same names |
+| `very_short`, `other` | no counterpart |
+| no counterpart | `clear_sentiment_missed` |
+
+The meaning of a pair is only roughly the same (for example `label_questionable` was decided by one reader of a different sample); do not treat the mapping as an exact equivalence.
 
 | Category | Tweets | Share of 60 |
 |---|---|---|
