@@ -8,8 +8,11 @@
 \author[Mani, Monis, Ekta and Akansha]
        {MANI, MONIS, EKTA and AKANSHA}
 
-\pagerange{\pageref{firstpage}--\pageref{lastpage}}
-\pubyear{2026}
+% This is a student project report, not a published article: drop the class's journal and copyright
+% line from the first-page header (the page number stays).
+\makeatletter
+\def\@j@urnal{\vbox to 5.6pt{\vss}}
+\makeatother
 
 \begin{document}
 
@@ -381,6 +384,7 @@ Languages. In \emph{Proceedings of ACL 2023}, pages 12402--12426.
 Classification. In \emph{Proceedings of ACL 2012 (Volume 2: Short Papers)}, pages 90--94.
 \bibitem[\protect\citename{Ma and Hovy }2016]{ma2016} Ma, X. and Hovy, E. (2016). End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. In
 \emph{Proceedings of ACL 2016}, pages 1064--1074.
+\enlargethispage{2\baselineskip}
 \bibitem[\protect\citename{Qwen Team }2024]{qwen2024} Qwen Team (2024). Qwen2.5 Technical Report. arXiv:2412.15115.
 \end{thebibliography}
 
