@@ -1,0 +1,10 @@
+system,family,variant,split,status,n_runs,accuracy_mean,macro_precision_mean,macro_recall_mean,macro_f1_mean,weighted_precision_mean,weighted_recall_mean,weighted_f1_mean,accuracy_sd,macro_precision_sd,macro_recall_sd,macro_f1_sd,weighted_precision_sd,weighted_recall_sd,weighted_f1_sd,source,notes
+TF-IDF + logistic regression,baseline,all,test,not run,,,,,,,,,,,,,,,,,not evaluated on test
+BiLSTM word+char,BiLSTM,raw,test,done,3.0,0.6576,0.6863,0.6538,0.6615,0.6797,0.6576,0.6603,0.0053,0.0093,0.0083,0.0077,0.0076,0.0053,0.0066,bilstm_final_test/metrics_summary.json,frozen single test evaluation (docs/bilstm_final_evaluation_protocol.md)
+BiLSTM word+char,BiLSTM,clean,test,done,3.0,0.6668,0.6767,0.6688,0.6716,0.6718,0.6668,0.6681,0.0037,0.0034,0.0063,0.003,0.0024,0.0037,0.0023,bilstm_final_test/metrics_summary.json,frozen single test evaluation (docs/bilstm_final_evaluation_protocol.md)
+BiLSTM word+char,BiLSTM,normalized,test,done,3.0,0.6533,0.6801,0.6515,0.6589,0.6737,0.6533,0.6566,0.0065,0.0063,0.0066,0.0061,0.0068,0.0065,0.0059,bilstm_final_test/metrics_summary.json,frozen single test evaluation (docs/bilstm_final_evaluation_protocol.md)
+mBERT (bert-base-multilingual-cased),transformer,"clean, lr 2e-05",test,done,3.0,0.6848,0.6958,0.6856,0.6893,0.6913,0.6848,0.6866,0.0074,0.0115,0.0069,0.0076,0.0112,0.0074,0.0081,transformer_final_test/metrics_summary.json,frozen single test evaluation (docs/transformer_final_evaluation_protocol.md)
+XLM-R (xlm-roberta-base),transformer,"clean, lr 1e-05",test,done,3.0,0.7003,0.705,0.7029,0.7034,0.7018,0.7003,0.7006,0.0043,0.0047,0.0048,0.0041,0.0039,0.0043,0.0041,transformer_final_test/metrics_summary.json,frozen single test evaluation (docs/transformer_final_evaluation_protocol.md)
+MuRIL (google/muril-base-cased),transformer,"raw, lr 2e-05",test,not run,,,,,,,,,,,,,,,,,no frozen test evaluation for this model
+IndicBERT v2 (ai4bharat/IndicBERTv2-MLM-only),transformer,"raw, lr 2e-05",test,not run,,,,,,,,,,,,,,,,,no frozen test evaluation for this model
+Zero-shot LLM,LLM,,test,not run,,,,,,,,,,,,,,,,,
