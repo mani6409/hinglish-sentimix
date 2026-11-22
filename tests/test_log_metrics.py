@@ -30,5 +30,10 @@ def test_majority_row_has_no_file_and_unknown_rows_raise():
         prediction_file(row("something else"))
 
 
+def test_transformer_rows_map_via_the_run_name_and_seed_column():
+    p = prediction_file(row("transformer xlm-roberta-base", "run=xlmr_clean_ep6_lr1e-5_final; macro_f1=0.63", seed=44))
+    assert p.name == "transformer_xlmr_clean_ep6_lr1e-5_final_seed44_dev.csv"
+
+
 def test_new_columns():
     assert NEW == ["dev_weighted_f1", "dev_macro_f1", "dev_accuracy"]

@@ -1,0 +1,151 @@
+{
+  "run_name": "mbert_clean_lr2e-5",
+  "checkpoint": "bert-base-multilingual-cased",
+  "config": {
+    "model_name": "mbert",
+    "mode": "clean",
+    "max_length": null,
+    "length_percentile": 100.0,
+    "batch_size": 32,
+    "eval_batch_size": 128,
+    "epochs": 4,
+    "lr": 2e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "grad_clip": 1.0,
+    "grad_accum_steps": 1,
+    "patience": 2,
+    "dropout": null,
+    "device": "auto",
+    "fp16": true
+  },
+  "length": {
+    "max_length": 80,
+    "source": "train p100 subword length, rounded up to a multiple of 8",
+    "train_max": 79,
+    "model_limit": 512,
+    "train_truncated": {
+      "tweets": 0,
+      "share": 0.0,
+      "subwords_cut": 0
+    }
+  },
+  "seeds": [
+    42
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6054,
+      "std": 0.0
+    },
+    "macro_f1": {
+      "mean": 0.6097,
+      "std": 0.0
+    },
+    "accuracy": {
+      "mean": 0.606,
+      "std": 0.0
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "best_epoch": 4,
+      "epochs_run": 4,
+      "metrics": {
+        "weighted_f1": 0.6053812206153938,
+        "macro_f1": 0.6096838213485004,
+        "accuracy": 0.606,
+        "per_class": {
+          "negative": {
+            "precision": 0.6102783725910065,
+            "recall": 0.6404494382022472,
+            "f1": 0.625,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5409383624655014,
+            "recall": 0.5212765957446809,
+            "f1": 0.5309255079006772,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6741573033707865,
+            "recall": 0.6720977596741344,
+            "f1": 0.6731259561448241,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          570,
+          272,
+          48
+        ],
+        [
+          269,
+          588,
+          271
+        ],
+        [
+          95,
+          227,
+          660
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 0.9577,
+          "dev_weighted_f1": 0.5676,
+          "dev_macro_f1": 0.5769,
+          "dev_accuracy": 0.584,
+          "lr_end": 1.6664552948636655e-05
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.805,
+          "dev_weighted_f1": 0.5779,
+          "dev_macro_f1": 0.5855,
+          "dev_accuracy": 0.5873,
+          "lr_end": 1.1109701965757768e-05
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.6984,
+          "dev_weighted_f1": 0.603,
+          "dev_macro_f1": 0.6078,
+          "dev_accuracy": 0.6057,
+          "lr_end": 5.554850982878884e-06
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.5971,
+          "dev_weighted_f1": 0.6054,
+          "dev_macro_f1": 0.6097,
+          "dev_accuracy": 0.606,
+          "lr_end": 0.0
+        }
+      ],
+      "n_params": 177855747,
+      "max_length": 80,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        },
+        "dev": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        }
+      },
+      "device": "cuda",
+      "fp16": true,
+      "checkpoint": "C:\\Users\\Monis\\Codespace\\Github\\hinglish-sentimix\\results\\checkpoints\\transformer_mbert_clean_lr2e-5_seed42",
+      "seconds": 375.8
+    }
+  ]
+}

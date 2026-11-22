@@ -32,10 +32,13 @@ def prediction_file(row):
     if model.startswith("tfidf"):
         name = model.split()[1].replace("+", "_")
         return ROOT / "results" / "predictions" / f"tfidf_{name}_dev.csv"
-    run = re.search(r"run=(\w+)", notes)
+    run = re.search(r"run=([\w.\-]+)", notes)  # run names may contain "-" and "." (for example lr1e-5)
     if model.startswith("bilstm") and run:
         # file pattern written by src/train_bilstm.py: bilstm_<run>_seed<seed>_dev.csv, with the seed column of the log
         return ROOT / "results" / "predictions" / f"bilstm_{run.group(1)}_seed{int(row['seed'])}_dev.csv"
+    if model.startswith("transformer") and run:
+        # file pattern written by src/train_transformer.py: transformer_<run>_seed<seed>_dev.csv
+        return ROOT / "results" / "predictions" / f"transformer_{run.group(1)}_seed{int(row['seed'])}_dev.csv"
     raise ValueError(f"cannot find the prediction file for log row: {model!r}, {notes[:60]!r}")
 
 

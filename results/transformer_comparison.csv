@@ -1,0 +1,13 @@
+row_type,model,checkpoint,lr,seeds,n_seeds,weighted_f1_mean,macro_f1_mean,accuracy_mean,precision_macro_mean,recall_macro_mean,precision_weighted_mean,recall_weighted_mean,weighted_f1_sd,macro_f1_sd,accuracy_sd,precision_macro_sd,recall_macro_sd,precision_weighted_sd,recall_weighted_sd,weighted_f1_mean_unselected_seeds,notes
+mean,mbert,bert-base-multilingual-cased,2e-05,42 43 44,3,0.6099,0.6138,0.6097,0.6147,0.6132,0.6105,0.6097,0.0046,0.0046,0.0048,0.005,0.0052,0.0048,0.0048,0.6084,representative run: seed 43 (median dev weighted F1)
+seed,mbert,bert-base-multilingual-cased,2e-05,42,1,0.6129,0.6172,0.6137,0.616,0.6185,0.6123,0.6137,,,,,,,,,run=mbert_clean_ep6_lr2e-5; best_epoch=3; lr chosen with this seed
+seed,mbert,bert-base-multilingual-cased,2e-05,43,1,0.6122,0.6156,0.611,0.6189,0.6131,0.6142,0.611,,,,,,,,,run=mbert_clean_ep6_lr2e-5_final; best_epoch=3
+seed,mbert,bert-base-multilingual-cased,2e-05,44,1,0.6047,0.6086,0.6043,0.6092,0.6081,0.605,0.6043,,,,,,,,,run=mbert_clean_ep6_lr2e-5_final; best_epoch=3
+mean,xlmr,xlm-roberta-base,1e-05,42 43 44,3,0.6269,0.6323,0.6309,0.6301,0.6392,0.6278,0.6309,0.0029,0.0029,0.0036,0.0028,0.0048,0.0033,0.0036,0.6254,representative run: seed 43 (median dev weighted F1)
+seed,xlmr,xlm-roberta-base,1e-05,42,1,0.6301,0.6357,0.635,0.6332,0.6443,0.6316,0.635,,,,,,,,,run=xlmr_clean_ep6_lr1e-5; best_epoch=6; lr chosen with this seed
+seed,xlmr,xlm-roberta-base,1e-05,43,1,0.6265,0.6312,0.629,0.6294,0.6348,0.6259,0.629,,,,,,,,,run=xlmr_clean_ep6_lr1e-5_final; best_epoch=3
+seed,xlmr,xlm-roberta-base,1e-05,44,1,0.6243,0.6301,0.6287,0.6276,0.6386,0.6259,0.6287,,,,,,,,,run=xlmr_clean_ep6_lr1e-5_final; best_epoch=5
+reference,tfidf char_2-5 + logistic regression,,,,1,0.6127,0.6164,0.6123,0.617,0.6162,0.6135,0.6123,,,,,,,,,"baseline, single run"
+reference,bilstm word+char (raw),,,,3,0.6105,0.6143,0.6096,0.6218,0.6115,0.616,0.6096,0.0041,0.0056,0.0048,0.0052,0.0096,0.0033,0.0048,,"baseline, mean over seeds"
+reference,bilstm word+char (clean),,,,3,0.6118,0.6172,0.6133,0.616,0.6199,0.6119,0.6133,0.0015,0.0022,0.0028,0.0018,0.0055,0.0009,0.0028,,"baseline, mean over seeds"
+reference,bilstm word+char (normalized),,,,3,0.6071,0.6105,0.6058,0.6182,0.607,0.6126,0.6058,0.0007,0.0004,0.0008,0.0064,0.0019,0.0063,0.0008,,"baseline, mean over seeds"

@@ -45,6 +45,7 @@ compute_metrics(y_true, y_pred)["weighted_f1"]
 - `src/seed.py`: `set_seed(42)` at the start of every script.
 - `src/metrics.py`: `compute_metrics`, `confusion`.
 - `src/train_transformer.py`: fine-tune any transformer, for example `python -m src.train_transformer --model xlmr --seeds 42 43 44`. See `docs/transformer_pipeline.md`.
+- `src/run_transformer_experiments.py` and `src/transformer_comparison.py`: learning-rate search, three seeds and the mBERT vs XLM-R comparison on dev. See `docs/transformer_results.md`.
 - Tests: `python -m pytest -q`
 
 ## Data

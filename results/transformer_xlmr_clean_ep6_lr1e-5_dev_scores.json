@@ -1,0 +1,167 @@
+{
+  "run_name": "xlmr_clean_ep6_lr1e-5",
+  "checkpoint": "xlm-roberta-base",
+  "config": {
+    "model_name": "xlmr",
+    "mode": "clean",
+    "max_length": null,
+    "length_percentile": 100.0,
+    "batch_size": 32,
+    "eval_batch_size": 128,
+    "epochs": 6,
+    "lr": 1e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "grad_clip": 1.0,
+    "grad_accum_steps": 1,
+    "patience": 2,
+    "dropout": null,
+    "device": "auto",
+    "fp16": true
+  },
+  "length": {
+    "max_length": 96,
+    "source": "train p100 subword length, rounded up to a multiple of 8",
+    "train_max": 90,
+    "model_limit": 512,
+    "train_truncated": {
+      "tweets": 0,
+      "share": 0.0,
+      "subwords_cut": 0
+    }
+  },
+  "seeds": [
+    42
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6301,
+      "std": 0.0
+    },
+    "macro_f1": {
+      "mean": 0.6357,
+      "std": 0.0
+    },
+    "accuracy": {
+      "mean": 0.635,
+      "std": 0.0
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "best_epoch": 6,
+      "epochs_run": 6,
+      "metrics": {
+        "weighted_f1": 0.6300828574133353,
+        "macro_f1": 0.6356786016873391,
+        "accuracy": 0.635,
+        "per_class": {
+          "negative": {
+            "precision": 0.6336032388663968,
+            "recall": 0.7033707865168539,
+            "f1": 0.6666666666666666,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.600216684723727,
+            "recall": 0.49113475177304966,
+            "f1": 0.5402242808386153,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6657483930211203,
+            "recall": 0.7382892057026477,
+            "f1": 0.7001448575567358,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          626,
+          197,
+          67
+        ],
+        [
+          277,
+          554,
+          297
+        ],
+        [
+          85,
+          172,
+          725
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 0.9822,
+          "dev_weighted_f1": 0.5649,
+          "dev_macro_f1": 0.5762,
+          "dev_accuracy": 0.5927,
+          "lr_end": 9.256128486897719e-06
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.8426,
+          "dev_weighted_f1": 0.6209,
+          "dev_macro_f1": 0.6265,
+          "dev_accuracy": 0.6243,
+          "lr_end": 7.404902789518175e-06
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.7757,
+          "dev_weighted_f1": 0.6216,
+          "dev_macro_f1": 0.6279,
+          "dev_accuracy": 0.6307,
+          "lr_end": 5.553677092138631e-06
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.7302,
+          "dev_weighted_f1": 0.6281,
+          "dev_macro_f1": 0.6332,
+          "dev_accuracy": 0.6313,
+          "lr_end": 3.7024513947590874e-06
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.6931,
+          "dev_weighted_f1": 0.6245,
+          "dev_macro_f1": 0.6306,
+          "dev_accuracy": 0.631,
+          "lr_end": 1.8512256973795437e-06
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.665,
+          "dev_weighted_f1": 0.6301,
+          "dev_macro_f1": 0.6357,
+          "dev_accuracy": 0.635,
+          "lr_end": 0.0
+        }
+      ],
+      "n_params": 278045955,
+      "max_length": 96,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        },
+        "dev": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        }
+      },
+      "device": "cuda",
+      "fp16": true,
+      "checkpoint": "C:\\Users\\Monis\\Codespace\\Github\\hinglish-sentimix\\results\\checkpoints\\transformer_xlmr_clean_ep6_lr1e-5_seed42",
+      "seconds": 2637.6
+    }
+  ]
+}
