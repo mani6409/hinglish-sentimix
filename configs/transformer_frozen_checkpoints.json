@@ -1,0 +1,256 @@
+{
+  "description": "Frozen mBERT and XLM-R checkpoints for the single official test evaluation. Edit only with team approval; see docs/transformer_final_evaluation_protocol.md.",
+  "protocol": "docs/transformer_final_evaluation_protocol.md",
+  "frozen_date": "2026-11-22",
+  "source_commit": "76a161e",
+  "selection": "lr chosen per model on dev weighted F1 with seed 42 (results/transformer_lr_search_ep6.csv); best epoch per run on dev weighted F1",
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "expected": {
+    "n_test": 3000,
+    "train_size": 14000,
+    "dev_size": 3000,
+    "mode": "clean",
+    "epochs": 6,
+    "selected_on": "dev weighted_f1"
+  },
+  "inference": {
+    "device": "cuda",
+    "fp16": true,
+    "eval_batch_size": 128
+  },
+  "dev_reproduction": {
+    "min_agreement": 0.99,
+    "max_weighted_f1_diff": 0.005
+  },
+  "models": {
+    "mbert": {
+      "model_name": "mbert",
+      "checkpoint": "bert-base-multilingual-cased",
+      "lr": 2e-05,
+      "max_length": 80
+    },
+    "xlmr": {
+      "model_name": "xlmr",
+      "checkpoint": "xlm-roberta-base",
+      "lr": 1e-05,
+      "max_length": 96
+    }
+  },
+  "checkpoints": [
+    {
+      "model": "mbert",
+      "seed": 42,
+      "run_name": "mbert_clean_ep6_lr2e-5",
+      "path": "results/checkpoints/transformer_mbert_clean_ep6_lr2e-5_seed42",
+      "files": {
+        "config.json": {
+          "md5": "c17d35f022fbff8cdc79e750ee34c687",
+          "size": 1134
+        },
+        "model.safetensors": {
+          "md5": "a9b19f73e2629049a45674276d433d99",
+          "size": 711446508
+        },
+        "run_info.json": {
+          "md5": "c1cc2cba66c23d041af644d44c19e98f",
+          "size": 1514
+        },
+        "tokenizer.json": {
+          "md5": "8f9ecf16676577d627dd0e1313d0ad49",
+          "size": 2919459
+        },
+        "tokenizer_config.json": {
+          "md5": "04928db5ab2c2d2dc67c68a173f0173e",
+          "size": 367
+        }
+      },
+      "dev_predictions": {
+        "path": "results/predictions/transformer_mbert_clean_ep6_lr2e-5_seed42_dev.csv",
+        "md5": "da63012885397fd91316414c4f452c17",
+        "size": 72173
+      }
+    },
+    {
+      "model": "mbert",
+      "seed": 43,
+      "run_name": "mbert_clean_ep6_lr2e-5_final",
+      "path": "results/checkpoints/transformer_mbert_clean_ep6_lr2e-5_final_seed43",
+      "files": {
+        "config.json": {
+          "md5": "c17d35f022fbff8cdc79e750ee34c687",
+          "size": 1134
+        },
+        "model.safetensors": {
+          "md5": "27688d771787c7d1d2f75fdd1f883f65",
+          "size": 711446508
+        },
+        "run_info.json": {
+          "md5": "2091bc9c75ec01fc54a1ecf29d7bcf10",
+          "size": 1503
+        },
+        "tokenizer.json": {
+          "md5": "8f9ecf16676577d627dd0e1313d0ad49",
+          "size": 2919459
+        },
+        "tokenizer_config.json": {
+          "md5": "04928db5ab2c2d2dc67c68a173f0173e",
+          "size": 367
+        }
+      },
+      "dev_predictions": {
+        "path": "results/predictions/transformer_mbert_clean_ep6_lr2e-5_final_seed43_dev.csv",
+        "md5": "5bb047540a200f0a0acc1eaa5f6b6396",
+        "size": 72059
+      }
+    },
+    {
+      "model": "mbert",
+      "seed": 44,
+      "run_name": "mbert_clean_ep6_lr2e-5_final",
+      "path": "results/checkpoints/transformer_mbert_clean_ep6_lr2e-5_final_seed44",
+      "files": {
+        "config.json": {
+          "md5": "c17d35f022fbff8cdc79e750ee34c687",
+          "size": 1134
+        },
+        "model.safetensors": {
+          "md5": "3da3f701bf73933a38986ae8cf8b2569",
+          "size": 711446508
+        },
+        "run_info.json": {
+          "md5": "99505286b850061ff3f5bb7d42dc3361",
+          "size": 1516
+        },
+        "tokenizer.json": {
+          "md5": "8f9ecf16676577d627dd0e1313d0ad49",
+          "size": 2919459
+        },
+        "tokenizer_config.json": {
+          "md5": "04928db5ab2c2d2dc67c68a173f0173e",
+          "size": 367
+        }
+      },
+      "dev_predictions": {
+        "path": "results/predictions/transformer_mbert_clean_ep6_lr2e-5_final_seed44_dev.csv",
+        "md5": "a15f26b68703a9f4bed6a1835a526925",
+        "size": 72119
+      }
+    },
+    {
+      "model": "xlmr",
+      "seed": 42,
+      "run_name": "xlmr_clean_ep6_lr1e-5",
+      "path": "results/checkpoints/transformer_xlmr_clean_ep6_lr1e-5_seed42",
+      "files": {
+        "config.json": {
+          "md5": "836e9ad5f60785d3a6415af6a6fd0fe2",
+          "size": 1010
+        },
+        "model.safetensors": {
+          "md5": "5fb64635ac3dac1a1437503dd52ed75e",
+          "size": 1112208084
+        },
+        "run_info.json": {
+          "md5": "32f889776634dab6c07d742aedfdafc0",
+          "size": 1490
+        },
+        "tokenizer.json": {
+          "md5": "c004d31a3bf4ffb370717f5c9a36b742",
+          "size": 17098183
+        },
+        "tokenizer_config.json": {
+          "md5": "93f19ab549324c181095c749d7a84cc3",
+          "size": 358
+        }
+      },
+      "dev_predictions": {
+        "path": "results/predictions/transformer_xlmr_clean_ep6_lr1e-5_seed42_dev.csv",
+        "md5": "636322faa3a5b94dd048483ee3963d33",
+        "size": 72339
+      }
+    },
+    {
+      "model": "xlmr",
+      "seed": 43,
+      "run_name": "xlmr_clean_ep6_lr1e-5_final",
+      "path": "results/checkpoints/transformer_xlmr_clean_ep6_lr1e-5_final_seed43",
+      "files": {
+        "config.json": {
+          "md5": "836e9ad5f60785d3a6415af6a6fd0fe2",
+          "size": 1010
+        },
+        "model.safetensors": {
+          "md5": "2717a22dc29c369660e16988660a36bb",
+          "size": 1112208084
+        },
+        "run_info.json": {
+          "md5": "10abbf52846c1762a05c828ae1bf592f",
+          "size": 1490
+        },
+        "tokenizer.json": {
+          "md5": "c004d31a3bf4ffb370717f5c9a36b742",
+          "size": 17098183
+        },
+        "tokenizer_config.json": {
+          "md5": "93f19ab549324c181095c749d7a84cc3",
+          "size": 358
+        }
+      },
+      "dev_predictions": {
+        "path": "results/predictions/transformer_xlmr_clean_ep6_lr1e-5_final_seed43_dev.csv",
+        "md5": "30fd98e12c77200df8b7ec3e9257ddeb",
+        "size": 72228
+      }
+    },
+    {
+      "model": "xlmr",
+      "seed": 44,
+      "run_name": "xlmr_clean_ep6_lr1e-5_final",
+      "path": "results/checkpoints/transformer_xlmr_clean_ep6_lr1e-5_final_seed44",
+      "files": {
+        "config.json": {
+          "md5": "836e9ad5f60785d3a6415af6a6fd0fe2",
+          "size": 1010
+        },
+        "model.safetensors": {
+          "md5": "4563df1951c9e5842a26215dedebba1b",
+          "size": 1112208084
+        },
+        "run_info.json": {
+          "md5": "58553f5fac487b5b44d8791610038481",
+          "size": 1502
+        },
+        "tokenizer.json": {
+          "md5": "c004d31a3bf4ffb370717f5c9a36b742",
+          "size": 17098183
+        },
+        "tokenizer_config.json": {
+          "md5": "93f19ab549324c181095c749d7a84cc3",
+          "size": 358
+        }
+      },
+      "dev_predictions": {
+        "path": "results/predictions/transformer_xlmr_clean_ep6_lr1e-5_final_seed44_dev.csv",
+        "md5": "5a7997dc78f83226e3718cbcc33ec799",
+        "size": 72324
+      }
+    }
+  ],
+  "test_files": {
+    "source": "official Zenodo record 3974927, Semeval_2020_task9_data.zip (zip MD5 4d93553c213b3a966b6d55b7a7c03be7); hashes below are from that archive, not from the local copies",
+    "unlabeled": {
+      "file": "Hinglish_test_unalbelled_conll_updated.txt",
+      "md5": "4706975d6fa025634c176111d3271487",
+      "size": 810391
+    },
+    "labels": {
+      "file": "Hinglish_test_labels.txt",
+      "md5": "60199636a5da7e8195f0db359332163e",
+      "size": 46222
+    }
+  }
+}

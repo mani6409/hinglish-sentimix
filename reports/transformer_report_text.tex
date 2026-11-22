@@ -1,0 +1,65 @@
+% Transformer text for reports/report_body.tex (PR #17), written for issue #10 by the transformer owner.
+% Each block says which PENDING marker it replaces. Every number comes from a file in the repository:
+%   dev:  results/transformer_comparison.csv, results/transformer_pairwise.csv, results/transformer_lr_search_ep6.csv
+%   test: results/transformer_final_test/ (NOT YET RUN: the test rows below stay PENDING until the team approves the run;
+%         protocol in docs/transformer_final_evaluation_protocol.md). Do not fill them in by hand.
+% Citation keys follow report_body.tex (devlin2019, conneau2020).
+
+% ---------------------------------------------------------------- Abstract / Introduction (one sentence each)
+% Replaces: [PENDING: add one sentence on the transformer and LLM results if they are completed.]
+Fine-tuned multilingual transformers were also compared: XLM-R reached 0.627 development weighted F1 (mean of three seeds)
+against 0.610 for mBERT, while mBERT did not improve on the TF-IDF and BiLSTM baselines.
+% After the test run, add: "On the test set, XLM-R and mBERT reached [X] and [Y] weighted F1."
+
+% ---------------------------------------------------------------- Methodology
+% Replaces the transformer part of: [PENDING: describe the fine-tuned mBERT, XLM-R and MuRIL/IndicBERT models ...]
+\subsection{Fine-tuned transformers}
+We fine-tune two pretrained multilingual encoders with a classification head on the three-class task: mBERT
+(\texttt{bert-base-multilingual-cased}) \cite{devlin2019} and XLM-R (\texttt{xlm-roberta-base}) \cite{conneau2020}. Both use
+one shared training script, so the pretrained model is the only difference besides the learning rate. Tweets use the
+\emph{clean} text version; spellings are not normalised, because subword tokenizers already split unseen variants into known
+pieces. The maximum input length is derived from the training set per tokenizer (the longest training tweet in subwords,
+rounded up to a multiple of 8: 80 for mBERT, 96 for XLM-R), so no training or development tweet is truncated; batches are
+padded dynamically. Training uses AdamW (weight decay 0.01, none on bias and LayerNorm weights), a linear warm-up over 10\% of
+the steps followed by linear decay, batch size 32, gradient clipping at 1.0 and mixed precision, for at most 6 epochs with
+early stopping (patience 2) on development weighted F1; the epoch with the best development weighted F1 is kept.
+
+The learning rate is chosen per model on the development set from $\{1, 2, 3\}\times10^{-5}$ with one seed (42); the chosen
+rate (mBERT $2\times10^{-5}$, XLM-R $1\times10^{-5}$) is then run with seeds 43 and 44, giving three seeds per model. An
+initial search with 4 epochs was discarded because every run peaked in its last epoch; with 6 epochs most runs peak earlier.
+On an RTX 4050 laptop GPU (6 GB) one epoch takes about 80~s for mBERT and 200~s for XLM-R.
+
+% ---------------------------------------------------------------- Development results
+% Add these rows to Table~\ref{tab:dev} (after the BiLSTM rows):
+mBERT (3 seeds)  & 0.610 $\pm$ 0.005 & 0.614 $\pm$ 0.005 & 0.610 $\pm$ 0.005 \\
+XLM-R (3 seeds)  & 0.627 $\pm$ 0.003 & 0.632 $\pm$ 0.003 & 0.631 $\pm$ 0.004 \\
+% and extend the caption: "Transformer rows: results/transformer_comparison.csv; learning rate and best epoch chosen on dev."
+% Replace the first sentence after "Table~\ref{tab:dev} shows development results." with:
+% "All non-transformer models are within about 0.006 weighted F1 of each other."
+
+% Paragraph to add after Table~\ref{tab:dev}:
+XLM-R scores higher than mBERT on every seed (by 0.014 to 0.020 weighted F1), and it is about 0.015 above the best TF-IDF
+model and the BiLSTM. The seed-to-seed spread is small (sample standard deviation 0.003 for XLM-R, 0.005 for mBERT), but the
+gap is close to the sampling error of the development set: a paired bootstrap over the same development tweets (1{,}000
+resamples, the median-seed run of each model) gives a difference of $-0.014$ with a 95\% interval from $-0.030$ to $+0.003$
+for mBERT minus XLM-R. mBERT is level with the baselines. Both transformers find the neutral class hardest; XLM-R's gain
+comes mainly from the positive class (recall 0.74 against 0.66 for mBERT). The learning rate was chosen with seed 42, so its
+score is slightly optimistic; the mean over seeds 43 and 44 alone is 0.625 for XLM-R and 0.608 for mBERT.
+
+% ---------------------------------------------------------------- Test results
+% Replaces the transformer part of: [PENDING: add rows for the transformer and LLM systems.]
+% NOT YET AVAILABLE. After `python -m src.evaluate_transformer_test --confirm-final-test`, copy the mean +/- sd values from
+% results/transformer_final_test/transformer_final_test_report.md (section 1 and 2) into rows like:
+% mBERT (3 seeds) & [wF1] $\pm$ [sd] & [macro F1] $\pm$ [sd] & [acc] $\pm$ [sd] \\
+% XLM-R (3 seeds) & [wF1] $\pm$ [sd] & [macro F1] $\pm$ [sd] & [acc] $\pm$ [sd] \\
+% (the BiLSTM table's first column header "BiLSTM text version" should then become "System").
+% Sentence to keep with the rows: "The transformer checkpoints, learning rates and inference settings were frozen and
+% hash-recorded before the test labels were read (docs/transformer_final_evaluation_protocol.md); all six runs are reported."
+
+% ---------------------------------------------------------------- Conclusion and limitations
+% Replaces the transformer part of: [PENDING: state what was and was not done for the transformers and the LLM.]
+For the transformers, only mBERT and XLM-R base models were fine-tuned, on the \emph{clean} text version only. The learning
+rate search used a single seed and three values, and other settings (batch size, warm-up, weight decay) were not tuned.
+Learning rate and best epoch were selected on the development set, so development scores are optimistic. Larger models
+(XLM-R large) and Indic-specific models were not part of this comparison.
+% MuRIL/IndicBERT (issue #7) and the zero-shot LLM (issue #8) are covered by their owners.
