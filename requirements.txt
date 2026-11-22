@@ -5,6 +5,7 @@ transformers
 sentencepiece  # XLM-R and IndicBERT tokenizers
 datasets
 scikit-learn
+scipy
 pandas
 numpy
 matplotlib

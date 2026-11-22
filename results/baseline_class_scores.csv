@@ -1,0 +1,10 @@
+model,class,precision,recall,f1,support
+tfidf_char_2-5,negative,0.6207,0.6416,0.6309,890
+tfidf_char_2-5,neutral,0.547,0.5523,0.5496,1128
+tfidf_char_2-5,positive,0.6833,0.6548,0.6687,982
+tfidf_word_1-2,negative,0.6222,0.6663,0.6435,890
+tfidf_word_1-2,neutral,0.5447,0.5239,0.5341,1128
+tfidf_word_1-2,positive,0.6778,0.664,0.6708,982
+tfidf_word_char,negative,0.6326,0.6191,0.6258,890
+tfidf_word_char,neutral,0.5344,0.5718,0.5525,1128
+tfidf_word_char,positive,0.6898,0.6477,0.6681,982

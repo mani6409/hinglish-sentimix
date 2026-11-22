@@ -1,0 +1,167 @@
+{
+  "run_name": "mbert_clean_ep6_lr1e-5",
+  "checkpoint": "bert-base-multilingual-cased",
+  "config": {
+    "model_name": "mbert",
+    "mode": "clean",
+    "max_length": null,
+    "length_percentile": 100.0,
+    "batch_size": 32,
+    "eval_batch_size": 128,
+    "epochs": 6,
+    "lr": 1e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "grad_clip": 1.0,
+    "grad_accum_steps": 1,
+    "patience": 2,
+    "dropout": null,
+    "device": "auto",
+    "fp16": true
+  },
+  "length": {
+    "max_length": 80,
+    "source": "train p100 subword length, rounded up to a multiple of 8",
+    "train_max": 79,
+    "model_limit": 512,
+    "train_truncated": {
+      "tweets": 0,
+      "share": 0.0,
+      "subwords_cut": 0
+    }
+  },
+  "seeds": [
+    42
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6088,
+      "std": 0.0
+    },
+    "macro_f1": {
+      "mean": 0.613,
+      "std": 0.0
+    },
+    "accuracy": {
+      "mean": 0.6103,
+      "std": 0.0
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "best_epoch": 6,
+      "epochs_run": 6,
+      "metrics": {
+        "weighted_f1": 0.6088343602912877,
+        "macro_f1": 0.6129689548714804,
+        "accuracy": 0.6103333333333333,
+        "per_class": {
+          "negative": {
+            "precision": 0.6178414096916299,
+            "recall": 0.6303370786516854,
+            "f1": 0.6240266963292548,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5524079320113314,
+            "recall": 0.5186170212765957,
+            "f1": 0.5349794238683128,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6631171345595354,
+            "recall": 0.6975560081466395,
+            "f1": 0.6799007444168734,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          561,
+          264,
+          65
+        ],
+        [
+          260,
+          585,
+          283
+        ],
+        [
+          87,
+          210,
+          685
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 0.9767,
+          "dev_weighted_f1": 0.5756,
+          "dev_macro_f1": 0.5825,
+          "dev_accuracy": 0.5847,
+          "lr_end": 9.256128486897719e-06
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.8402,
+          "dev_weighted_f1": 0.588,
+          "dev_macro_f1": 0.5951,
+          "dev_accuracy": 0.5967,
+          "lr_end": 7.404902789518175e-06
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.7608,
+          "dev_weighted_f1": 0.5947,
+          "dev_macro_f1": 0.5989,
+          "dev_accuracy": 0.5987,
+          "lr_end": 5.553677092138631e-06
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.6888,
+          "dev_weighted_f1": 0.6085,
+          "dev_macro_f1": 0.6127,
+          "dev_accuracy": 0.6087,
+          "lr_end": 3.7024513947590874e-06
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.6318,
+          "dev_weighted_f1": 0.605,
+          "dev_macro_f1": 0.6087,
+          "dev_accuracy": 0.6047,
+          "lr_end": 1.8512256973795437e-06
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.5855,
+          "dev_weighted_f1": 0.6088,
+          "dev_macro_f1": 0.613,
+          "dev_accuracy": 0.6103,
+          "lr_end": 0.0
+        }
+      ],
+      "n_params": 177855747,
+      "max_length": 80,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        },
+        "dev": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        }
+      },
+      "device": "cuda",
+      "fp16": true,
+      "checkpoint": "C:\\Users\\Monis\\Codespace\\Github\\hinglish-sentimix\\results\\checkpoints\\transformer_mbert_clean_ep6_lr1e-5_seed42",
+      "seconds": 483.0
+    }
+  ]
+}

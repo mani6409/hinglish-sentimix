@@ -1,0 +1,64 @@
+{
+  "model": "ai4bharat/IndicBERTv2-MLM-only",
+  "seed": 42,
+  "config": {
+    "text_mode": "raw",
+    "max_len": 96,
+    "batch_size": 32,
+    "lr": 2e-05,
+    "epochs": 3,
+    "max_train_samples": 0,
+    "max_dev_samples": 0
+  },
+  "best_epoch": 3,
+  "dev_metrics": {
+    "weighted_f1": 0.6305232120007002,
+    "macro_f1": 0.6360148703971361,
+    "accuracy": 0.6346666666666667,
+    "per_class": {
+      "negative": {
+        "precision": 0.607970342910102,
+        "recall": 0.7370786516853932,
+        "f1": 0.6663280853224988,
+        "support": 890
+      },
+      "neutral": {
+        "precision": 0.6,
+        "recall": 0.4946808510638298,
+        "f1": 0.5422740524781341,
+        "support": 1128
+      },
+      "positive": {
+        "precision": 0.6962663975782039,
+        "recall": 0.7026476578411406,
+        "f1": 0.6994424733907755,
+        "support": 982
+      }
+    }
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.92,
+      "dev_weighted_f1": 0.6053,
+      "dev_macro_f1": 0.6066,
+      "dev_accuracy": 0.6057
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.7821,
+      "dev_weighted_f1": 0.6253,
+      "dev_macro_f1": 0.6312,
+      "dev_accuracy": 0.6297
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.7124,
+      "dev_weighted_f1": 0.6305,
+      "dev_macro_f1": 0.636,
+      "dev_accuracy": 0.6347
+    }
+  ],
+  "device": "cuda",
+  "train_seconds": 367.8
+}

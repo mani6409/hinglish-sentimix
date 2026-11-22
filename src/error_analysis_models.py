@@ -15,7 +15,8 @@ Outputs (results/):
   error_flag_rates_models.csv        per flag: error rate with vs without the flag (all settings pooled), chi-square p
   error_agreement.csv                pairwise overlap of the wrong tweets of two settings
   error_cmi_rates.csv                error rate per setting and CMI bucket (95% Wilson interval)
-  error_manual_sample.csv            stratified sample of errors with an EMPTY column for hand labels
+  error_manual_sample.csv            stratified sample of errors with a column for hand labels; labels already in
+                                     the file are kept on a rerun (matched by uid), never blanked
 
 Important honesty note: the "flags" are automatic keyword/pattern heuristics. They mark candidates for a
 category; they are NOT the category itself. "context_dependent" and the final "annotation error" decision
@@ -95,17 +96,20 @@ def setting_name(file_stem):
 
 
 def seed_of(file_stem):
+    """Get the seed from a file name ("...seed43_dev" gives 43). Gives 0 if there is none."""
     m = re.search(r"seed(\d+)", file_stem)
     return int(m.group(1)) if m else 0
 
 
 def prediction_files(root=ROOT):
+    """All dev prediction files, including MuRIL, IndicBERT and zero-shot if they exist."""
     files = sorted((Path(root) / "results" / "predictions").glob("*_dev.csv"))
     files += [p for p in (Path(root) / "results" / p.name for p in EXTRA_PREDICTION_FILES) if p.exists()]
     return files
 
 
 def anonymise(text):
+    """Replace @mentions with @USER."""
     return _MENTION_RE.sub("@USER", text)
 
 
@@ -151,6 +155,7 @@ def merge_seeds(frames):
     votes = votes.loc[base.index]
 
     def vote(row):
+        # pick the label chosen by most runs; on a tie, use the lowest seed
         counts = row.value_counts()
         top = counts[counts == counts.max()].index
         return row.iloc[0] if row.iloc[0] in top else top[0]
@@ -232,6 +237,8 @@ def build_error_table(dev, settings, cmi_table, edges):
 
 # ---- summaries -------------------------------------------------------------------------------------------
 def model_summary(settings, file_scores):
+    """One row per setting: scores, errors, share of errors involving neutral, the top confusion and
+    per-class precision and recall. Best first."""
     rows = []
     for name, df in settings.items():
         m = compute_metrics(df["label"], df["pred"])
@@ -305,6 +312,7 @@ def agreement_table(wrong):
 
 
 def wilson(k, n, z=1.96):
+    """95% confidence range for a rate k out of n (works better than the simple formula when n is small)."""
     if n == 0:
         return (np.nan, np.nan)
     p = k / n
@@ -315,6 +323,7 @@ def wilson(k, n, z=1.96):
 
 
 def cmi_error_rates(settings, cmi_table, edges):
+    """Error rate of each setting in the low, medium and high CMI buckets, with a Wilson range."""
     bucket = pd.Series(assign_bucket(cmi_table["cmi"], edges).astype(str).to_numpy(), index=cmi_table["uid"].to_numpy())
     rows = []
     for name, df in settings.items():
@@ -332,7 +341,8 @@ def cmi_error_rates(settings, cmi_table, edges):
 
 def manual_sample(errors, summary, n=60, seed=DEFAULT_SEED):
     """Stratified random sample of errors of the best setting, covering every (gold -> predicted) pair in
-    proportion (at least 3 per pair when available). The hand-label columns are left empty on purpose."""
+    proportion (at least 3 per pair when available). The hand-label columns are left empty on purpose;
+    keep_existing_labels() copies earlier labels back in before the file is written."""
     best = summary.iloc[0]["setting"]
     pool = errors[errors["wrong_settings"].str.split(";").apply(lambda s: best in s)].copy()
     pool["pair"] = pool["label"] + "->" + pool["most_common_wrong_pred"]
@@ -349,6 +359,36 @@ def manual_sample(errors, summary, n=60, seed=DEFAULT_SEED):
     return sample
 
 
+def keep_existing_labels(sample, path):
+    """Carry hand labels over from an existing manual-sample file, matched by uid.
+
+    Without this, rerunning the script would blank the labels that a person has filled in. Rows of the old file
+    that have a label are kept: if the uid is in the new sample its label and notes are copied over; if it is not
+    (the best setting or the predictions changed), the whole labelled row is appended, so no label is ever lost.
+    Rows without a label are not kept. Returns (new_frame, number_of_labels_carried_over)."""
+    path = Path(path)
+    if not path.exists():
+        return sample, 0
+    old = pd.read_csv(path, keep_default_na=False)
+    if not {"uid", "manual_category"}.issubset(old.columns):
+        return sample, 0
+    old = old[old["manual_category"].astype(str).str.strip() != ""].drop_duplicates("uid", keep="last")
+    if old.empty:
+        return sample, 0
+    sample = sample.copy()
+    old_notes = old.set_index("uid")["notes"] if "notes" in old.columns else pd.Series(dtype=object)
+    labels = old.set_index("uid")["manual_category"]
+    in_new = sample["uid"].isin(labels.index)
+    sample.loc[in_new, "manual_category"] = sample.loc[in_new, "uid"].map(labels).to_numpy()
+    if len(old_notes):
+        sample.loc[in_new, "notes"] = sample.loc[in_new, "uid"].map(old_notes).fillna("").to_numpy()
+    extra = old[~old["uid"].isin(sample["uid"])]
+    if len(extra):
+        extra = extra.reindex(columns=sample.columns, fill_value="")
+        sample = pd.concat([sample, extra], ignore_index=True).sort_values("uid")
+    return sample, len(old)
+
+
 def file_level_scores(files, dev):
     """Mean single-run weighted F1 per setting (for reference next to the majority-vote score)."""
     per = {}
@@ -359,27 +399,41 @@ def file_level_scores(files, dev):
 
 
 def main():
+    """Read all dev predictions, build the error tables and save them."""
     set_seed(DEFAULT_SEED)
+    # step 1: load the dev tweets and every dev prediction file (stop if there are none)
     dev = load_split("dev")
     files = prediction_files()
     if not files:
         raise SystemExit("No dev prediction files found in results/predictions/")
+    # one entry per setting; runs that differ only in the seed are merged by majority vote
     settings = load_predictions(files, dev)
+
+    # step 2: CMI of every dev tweet; the bucket edges come from the train rows only
+    # (test rows are dropped while reading, so test information is never used)
     cmi_all = read_cmi_without_test(RESULTS / "cmi_per_tweet.csv")
     edges = bucket_edges(cmi_all.loc[cmi_all["split"] == "train", "cmi"])
     cmi_dev = cmi_all[cmi_all["split"] == "dev"]
+    # the CMI table must hold exactly the dev uids, no more and no fewer
     check_uid_alignment(cmi_dev["uid"], dev["uid"], name="cmi dev rows", reference_name="dev")
 
-    errors, wrong = build_error_table(dev, settings, cmi_dev, edges)
-    summary = model_summary(settings, file_level_scores(files, dev))
-    rates = flag_rates(dev, settings, cmi_dev, edges)
+    # step 3: build the tables
+    errors, wrong = build_error_table(dev, settings, cmi_dev, edges)  # one row per tweet some setting got wrong
+    summary = model_summary(settings, file_level_scores(files, dev))  # scores and top confusions per setting
+    rates = flag_rates(dev, settings, cmi_dev, edges)                 # error rate with vs without each flag
+
+    # step 4: save the tables
     errors.to_csv(RESULTS / "error_analysis_models.csv", index=False)
     summary.to_csv(RESULTS / "error_model_summary.csv", index=False)
     rates.to_csv(RESULTS / "error_flag_rates_models.csv", index=False)
-    agreement_table(wrong).to_csv(RESULTS / "error_agreement.csv", index=False)
+    agreement_table(wrong).to_csv(RESULTS / "error_agreement.csv", index=False)  # which settings fail on the same tweets
     cmi_error_rates(settings, cmi_dev, edges).to_csv(RESULTS / "error_cmi_rates.csv", index=False)
-    manual_sample(errors, summary).to_csv(RESULTS / "error_manual_sample.csv", index=False)
+    manual_path = RESULTS / "error_manual_sample.csv"
+    sample, n_kept = keep_existing_labels(manual_sample(errors, summary), manual_path)
+    sample.to_csv(manual_path, index=False)
+    print(f"manual sample: {len(sample)} rows, {n_kept} existing hand labels kept")
 
+    # step 5: print a short summary on the screen
     print(f"settings: {list(settings)}")
     print(f"dev tweets wrong in >= 1 setting: {len(errors)} of {len(dev)}")
     print(summary[["setting", "n_runs", "n_tweets", "weighted_f1", "mean_single_run_weighted_f1", "top_confusion"]]

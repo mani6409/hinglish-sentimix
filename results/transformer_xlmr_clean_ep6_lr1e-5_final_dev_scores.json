@@ -1,0 +1,275 @@
+{
+  "run_name": "xlmr_clean_ep6_lr1e-5_final",
+  "checkpoint": "xlm-roberta-base",
+  "config": {
+    "model_name": "xlmr",
+    "mode": "clean",
+    "max_length": null,
+    "length_percentile": 100.0,
+    "batch_size": 32,
+    "eval_batch_size": 128,
+    "epochs": 6,
+    "lr": 1e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "grad_clip": 1.0,
+    "grad_accum_steps": 1,
+    "patience": 2,
+    "dropout": null,
+    "device": "auto",
+    "fp16": true
+  },
+  "length": {
+    "max_length": 96,
+    "source": "train p100 subword length, rounded up to a multiple of 8",
+    "train_max": 90,
+    "model_limit": 512,
+    "train_truncated": {
+      "tweets": 0,
+      "share": 0.0,
+      "subwords_cut": 0
+    }
+  },
+  "seeds": [
+    43,
+    44
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6254,
+      "std": 0.0016
+    },
+    "macro_f1": {
+      "mean": 0.6307,
+      "std": 0.0008
+    },
+    "accuracy": {
+      "mean": 0.6288,
+      "std": 0.0002
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 43,
+      "best_epoch": 3,
+      "epochs_run": 5,
+      "metrics": {
+        "weighted_f1": 0.6264879243638929,
+        "macro_f1": 0.6311888828055098,
+        "accuracy": 0.629,
+        "per_class": {
+          "negative": {
+            "precision": 0.6500566251415628,
+            "recall": 0.6449438202247191,
+            "f1": 0.6474901297236323,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5696324951644101,
+            "recall": 0.5221631205673759,
+            "f1": 0.5448658649398704,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6685133887349953,
+            "recall": 0.7372708757637475,
+            "f1": 0.7012106537530266,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          574,
+          255,
+          61
+        ],
+        [
+          241,
+          589,
+          298
+        ],
+        [
+          68,
+          190,
+          724
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 0.9768,
+          "dev_weighted_f1": 0.5578,
+          "dev_macro_f1": 0.5538,
+          "dev_accuracy": 0.5667,
+          "lr_end": 9.256128486897719e-06
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.8513,
+          "dev_weighted_f1": 0.614,
+          "dev_macro_f1": 0.6173,
+          "dev_accuracy": 0.615,
+          "lr_end": 7.404902789518175e-06
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.7799,
+          "dev_weighted_f1": 0.6265,
+          "dev_macro_f1": 0.6312,
+          "dev_accuracy": 0.629,
+          "lr_end": 5.553677092138631e-06
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.7352,
+          "dev_weighted_f1": 0.6229,
+          "dev_macro_f1": 0.6259,
+          "dev_accuracy": 0.623,
+          "lr_end": 3.7024513947590874e-06
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.7018,
+          "dev_weighted_f1": 0.6261,
+          "dev_macro_f1": 0.6319,
+          "dev_accuracy": 0.63,
+          "lr_end": 1.8512256973795437e-06
+        }
+      ],
+      "n_params": 278045955,
+      "max_length": 96,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        },
+        "dev": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        }
+      },
+      "device": "cuda",
+      "fp16": true,
+      "checkpoint": "C:\\Users\\Monis\\Codespace\\Github\\hinglish-sentimix\\results\\checkpoints\\transformer_xlmr_clean_ep6_lr1e-5_final_seed43",
+      "seconds": 980.9
+    },
+    {
+      "seed": 44,
+      "best_epoch": 5,
+      "epochs_run": 6,
+      "metrics": {
+        "weighted_f1": 0.624251096198797,
+        "macro_f1": 0.6301244636140985,
+        "accuracy": 0.6286666666666667,
+        "per_class": {
+          "negative": {
+            "precision": 0.6114832535885167,
+            "recall": 0.7179775280898877,
+            "f1": 0.6604651162790698,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.582089552238806,
+            "recall": 0.48404255319148937,
+            "f1": 0.5285575992255567,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6892822025565388,
+            "recall": 0.7138492871690427,
+            "f1": 0.7013506753376688,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          639,
+          197,
+          54
+        ],
+        [
+          320,
+          546,
+          262
+        ],
+        [
+          86,
+          195,
+          701
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 0.9763,
+          "dev_weighted_f1": 0.5596,
+          "dev_macro_f1": 0.5713,
+          "dev_accuracy": 0.5877,
+          "lr_end": 9.256128486897719e-06
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.8399,
+          "dev_weighted_f1": 0.6,
+          "dev_macro_f1": 0.6072,
+          "dev_accuracy": 0.611,
+          "lr_end": 7.404902789518175e-06
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.7753,
+          "dev_weighted_f1": 0.6114,
+          "dev_macro_f1": 0.6181,
+          "dev_accuracy": 0.6193,
+          "lr_end": 5.553677092138631e-06
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.7344,
+          "dev_weighted_f1": 0.6191,
+          "dev_macro_f1": 0.6242,
+          "dev_accuracy": 0.622,
+          "lr_end": 3.7024513947590874e-06
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.6919,
+          "dev_weighted_f1": 0.6243,
+          "dev_macro_f1": 0.6301,
+          "dev_accuracy": 0.6287,
+          "lr_end": 1.8512256973795437e-06
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.6626,
+          "dev_weighted_f1": 0.623,
+          "dev_macro_f1": 0.6286,
+          "dev_accuracy": 0.6267,
+          "lr_end": 0.0
+        }
+      ],
+      "n_params": 278045955,
+      "max_length": 96,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        },
+        "dev": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        }
+      },
+      "device": "cuda",
+      "fp16": true,
+      "checkpoint": "C:\\Users\\Monis\\Codespace\\Github\\hinglish-sentimix\\results\\checkpoints\\transformer_xlmr_clean_ep6_lr1e-5_final_seed44",
+      "seconds": 1201.9
+    }
+  ]
+}
