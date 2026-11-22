@@ -43,6 +43,7 @@ MODEL_ALIASES = {
 
 
 def resolve_model_name(name: str) -> str:
+    """Change a short name like "xlmr" into the full Hugging Face name. Other names stay the same."""
     return MODEL_ALIASES.get(name, name)
 
 
@@ -84,6 +85,7 @@ class TransformerConfig:
     fp16: bool = True                   # mixed precision on CUDA only; ignored on CPU
 
     def validate(self) -> "TransformerConfig":
+        """Raise ValueError if a setting cannot work, so mistakes show up before training."""
         if self.mode not in PRESETS:
             raise ValueError(f"mode must be one of {list(PRESETS)}, got {self.mode!r}")
         if not self.model_name:
@@ -106,6 +108,7 @@ class TransformerConfig:
         return self
 
     def with_overrides(self, overrides: dict) -> "TransformerConfig":
+        """Copy of the config with some values changed. Unknown keys raise an error."""
         known = {f.name for f in fields(self)}
         bad = set(overrides) - known
         if bad:
@@ -114,6 +117,7 @@ class TransformerConfig:
 
     @classmethod
     def from_json(cls, path) -> "TransformerConfig":
+        """Defaults plus the values from a JSON file (keys starting with "_" are notes and are ignored)."""
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         data = {k: v for k, v in data.items() if not k.startswith("_")}  # "_comment" keys are documentation
         return cls().with_overrides(data)
@@ -126,6 +130,7 @@ class TransformerConfig:
 
 
 def resolve_device(name: str):
+    """auto = GPU if there is one, otherwise CPU. Asking for "cuda" without a GPU is an error."""
     import torch
 
     if name == "auto":
@@ -137,6 +142,7 @@ def resolve_device(name: str):
 
 # ---------------------------------------------------- model and tokenizer ----
 def load_tokenizer(model_name: str):
+    """The tokenizer of the pretrained model (downloaded the first time)."""
     from transformers import AutoTokenizer
 
     return AutoTokenizer.from_pretrained(resolve_model_name(model_name))
@@ -164,6 +170,7 @@ def token_lengths(tokenizer, texts: Sequence[str]) -> List[int]:
 
 
 def length_stats(lengths: Sequence[int]) -> dict:
+    """Count, mean, percentiles (50, 90, 95, 99, 99.9) and max of the lengths."""
     arr = np.asarray(lengths)
     pct = {f"p{p}": float(np.percentile(arr, p)) for p in (50, 90, 95, 99, 99.9)}
     return {"n": int(arr.size), "mean": round(float(arr.mean()), 2), **pct, "max": int(arr.max())}
@@ -187,6 +194,7 @@ def model_position_limit(tokenizer) -> int:
 
 
 def count_truncated(lengths: Sequence[int], max_length: int) -> dict:
+    """How much max_length cuts: how many tweets are too long, their share, and how many subwords are lost."""
     over = [n for n in lengths if n > max_length]
     return {"tweets": len(over), "share": round(len(over) / max(len(lengths), 1), 5),
             "subwords_cut": int(sum(n - max_length for n in over))}
@@ -253,6 +261,7 @@ def predict_ids(model, loader, device, fp16: bool = False) -> List[int]:
 
 
 def ids_to_labels(ids: Sequence[int]) -> List[str]:
+    """Label ids to names (0 negative, 1 neutral, 2 positive)."""
     return [ID2LABEL[int(i)] for i in ids]
 
 
@@ -308,6 +317,7 @@ def analyze_lengths(models: Sequence[str], mode: str = "clean", root=None, perce
 
 
 def main(argv=None) -> dict:
+    """Measure subword lengths for each tokenizer and save the max_length to a JSON file."""
     p = argparse.ArgumentParser(description="Measure subword lengths of the Hinglish tweets per tokenizer.")
     p.add_argument("--models", nargs="+", default=["mbert", "xlmr"])
     p.add_argument("--mode", default="clean", choices=list(PRESETS))

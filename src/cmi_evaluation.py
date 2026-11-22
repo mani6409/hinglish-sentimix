@@ -37,6 +37,7 @@ def bucket_edges(train_cmi):
 
 
 def assign_bucket(cmi, edges):
+    """Return "low", "medium" or "high" for each CMI value, using the two cut points."""
     lo, hi = edges
     return pd.cut(cmi, bins=[-np.inf, lo, hi, np.inf], labels=BUCKETS)
 
@@ -92,6 +93,7 @@ def summarize_by_group(scores):
 
 
 def interval(scores):
+    """The 95% range: 2.5th to 97.5th percentile of the bootstrap scores."""
     return float(np.percentile(scores, 2.5)), float(np.percentile(scores, 97.5))
 
 
@@ -106,6 +108,7 @@ def evaluate_file(path, cmi, edges, rng=None):
     merged["bucket"] = assign_bucket(merged["cmi"], edges)
     model = path.stem.replace("_dev", "")
     rows, boots = [], {}
+    # score all tweets, then each CMI bucket separately
     for name, g in [("all", merged)] + [(b, merged[merged["bucket"] == b]) for b in BUCKETS]:
         m = compute_metrics(g["label"], g["pred"])
         scores = bootstrap_scores(g["label"], g["pred"], rng)
@@ -119,6 +122,7 @@ def evaluate_file(path, cmi, edges, rng=None):
             row[f"precision_{lab}"] = m["per_class"][lab]["precision"]
             row[f"recall_{lab}"] = m["per_class"][lab]["recall"]
         rows.append(row)
+    # compare two buckets: is one better than the other?
     score = {r["bucket"]: r["weighted_f1"] for r in rows}
     pair_rows = []
     for a, b in PAIRS:
@@ -130,6 +134,7 @@ def evaluate_file(path, cmi, edges, rng=None):
 
 
 def main():
+    """Score every dev prediction file per CMI bucket and save three CSV files."""
     set_seed(DEFAULT_SEED)
     cmi = read_cmi_without_test(ROOT / "results" / "cmi_per_tweet.csv")
     check_uid_alignment(cmi["uid"], cmi["uid"], name="cmi_per_tweet.csv", reference_name="itself")

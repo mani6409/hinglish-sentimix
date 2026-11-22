@@ -100,6 +100,8 @@ class BiLSTMConfig:
     device: str = "auto"                 # auto | cpu | cuda
 
     def validate(self) -> "BiLSTMConfig":
+        """Raise ValueError if a setting cannot work (unknown mode, both inputs off, size below 1, ...).
+        This way a typo fails at the start, not after training. Returns self."""
         if self.mode not in PRESETS:
             raise ValueError(f"mode must be one of {list(PRESETS)}, got {self.mode!r}")
         if self.pooling not in POOLINGS:
@@ -119,6 +121,7 @@ class BiLSTMConfig:
         return self
 
     def with_overrides(self, overrides: dict) -> "BiLSTMConfig":
+        """Copy of the config with some values changed (for --set and --mode). Unknown keys raise an error."""
         known = {f.name for f in fields(self)}
         bad = set(overrides) - known
         if bad:
@@ -127,6 +130,7 @@ class BiLSTMConfig:
 
     @classmethod
     def from_json(cls, path) -> "BiLSTMConfig":
+        """Defaults plus the values from a JSON file."""
         return cls().with_overrides(json.loads(Path(path).read_text(encoding="utf-8")))
 
     def short(self) -> str:
@@ -140,6 +144,7 @@ class BiLSTMConfig:
 
 # ----------------------------------------------------------- one training ----
 def _resolve_device(name: str) -> torch.device:
+    """auto = use the GPU if there is one, otherwise the CPU."""
     if name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(name)
@@ -158,6 +163,7 @@ def predict(model: nn.Module, loader: DataLoader, device: torch.device) -> List[
 
 
 def _evaluate(model, loader, device, true_labels):
+    """Predict a whole split and score it. Returns (predicted labels, metrics)."""
     pred = [ID2LABEL[i] for i in predict(model, loader, device)]
     return pred, compute_metrics(true_labels, pred)
 
@@ -377,6 +383,7 @@ def find_existing_outputs(out_dir, run_name: str, seeds: List[int], save_checkpo
 
 
 def _stamp() -> str:
+    """Date and time as text, used to name the staging and archive folders."""
     return datetime.now().strftime("%Y%m%d-%H%M%S-%f")
 
 
@@ -503,6 +510,7 @@ def run_experiment(train_df, dev_df, cfg: BiLSTMConfig, seeds: List[int], out_di
 
 # -------------------------------------------------------------------- CLI ----
 def _parse_set(items: Optional[List[str]]) -> dict:
+    """Turn ["lr=0.002", "pooling=last"] into {"lr": 0.002, "pooling": "last"}."""
     out = {}
     for item in items or []:
         if "=" not in item:
@@ -516,6 +524,7 @@ def _parse_set(items: Optional[List[str]]) -> dict:
 
 
 def main(argv=None) -> dict:
+    """Read the settings, load train and dev, and run the experiment."""
     p = argparse.ArgumentParser(description="Train the word+char BiLSTM (train split) and evaluate on dev.")
     p.add_argument("--config", help="JSON file with BiLSTMConfig settings (default: built-in defaults)")
     p.add_argument("--mode", choices=list(PRESETS), help="text version: raw | clean | normalized")

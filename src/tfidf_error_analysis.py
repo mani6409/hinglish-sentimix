@@ -20,10 +20,13 @@ N_ERRORS = 30
 
 
 def md_escape(s):
+    """Make a tweet safe for a Markdown table (no '|' and no new lines)."""
     return s.replace("|", "\\|").replace("\n", " ")
 
 
 def main():
+    """Train the best TF-IDF word model again, list the strongest words for each class, and save the
+    dev tweets it got wrong with the highest confidence, to read by hand."""
     set_seed(DEFAULT_SEED)
     tr, dv = load_split("train"), load_split("dev")
     vec = TfidfVectorizer(analyzer="word", ngram_range=(1, 2), min_df=2, sublinear_tf=True,
@@ -31,10 +34,13 @@ def main():
     clf = LogisticRegression(C=1.0, max_iter=3000, random_state=DEFAULT_SEED)
     clf.fit(vec.fit_transform(tr["text"]), tr["label"])
 
+    # the biggest weights show which words point most strongly to each class
     names = np.array(vec.get_feature_names_out())
     top = {c: names[np.argsort(-clf.coef_[i])[:TOP_K]].tolist() for i, c in enumerate(clf.classes_)}
     (ROOT / "results" / "tfidf_top_features.json").write_text(json.dumps(top, indent=2, ensure_ascii=False))
 
+    # confidence = probability of the predicted class
+    # wrong answers with high confidence are the ones to read first
     proba = clf.predict_proba(vec.transform(dv["text"]))
     dv = dv.assign(pred=clf.classes_[proba.argmax(1)], conf=proba.max(1))
     wrong = dv[dv["pred"] != dv["label"]]

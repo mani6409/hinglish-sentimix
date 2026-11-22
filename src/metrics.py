@@ -16,6 +16,8 @@ LABELS = ["negative", "neutral", "positive"]  # fixed order, used everywhere
 
 
 def _check_labels(y_true, y_pred):
+    """Stop with a clear error if the input is wrong (different lengths, empty, unknown label)
+    instead of giving a wrong score."""
     if len(y_true) != len(y_pred):
         raise ValueError(f"length mismatch: {len(y_true)} true vs {len(y_pred)} predicted")
     if len(y_true) == 0:
