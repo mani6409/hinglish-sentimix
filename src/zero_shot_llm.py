@@ -60,6 +60,7 @@ _LABEL_RE = re.compile(r"\b(positive|negative|neutral)\b")
 
 
 def build_prompt(tweet, version="v2"):
+    """Put the tweet into the prompt (v1 = short, v2 = explains Hinglish to the model)."""
     if version not in PROMPTS:
         raise ValueError(f"unknown prompt version {version!r}; choose from {sorted(PROMPTS)}")
     return PROMPTS[version].format(tweet=str(tweet).strip())
@@ -156,6 +157,7 @@ def sample_dev(dev, n, seed=DEFAULT_SEED):
 
 
 def read_done(raw_path):
+    """Answers saved so far (empty if none), so an interrupted run can carry on."""
     if raw_path.exists():
         return pd.read_csv(raw_path, keep_default_na=False)
     return pd.DataFrame(columns=["uid", "raw_response", "parsed", "valid", "reason", "latency_s", "prompt_version"])
@@ -210,6 +212,7 @@ def baseline_scores_on(uids, root=ROOT):
 
 
 def write_outputs(subset, raw, meta_extra, suffix=""):
+    """Score the answers, save the predictions and the run info, and return the run info."""
     metrics, merged = evaluate(subset, raw)
     preds = merged[["uid", "label", "parsed"]].rename(columns={"parsed": "pred"})
     preds.to_csv(RESULTS / f"zero_shot_dev_predictions{suffix}.csv", index=False)
@@ -220,6 +223,7 @@ def write_outputs(subset, raw, meta_extra, suffix=""):
 
 
 def main(argv=None):
+    """Pick a random dev subset, ask the model about each tweet, and save scores and predictions."""
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--backend", choices=["hf", "anthropic"], required=True)
     ap.add_argument("--model", required=True, help="model name or id")
