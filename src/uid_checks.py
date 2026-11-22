@@ -18,8 +18,9 @@ Inputs:
 Output:
     None. It returns normally when the uids match, and raises ``ValueError`` otherwise.
 
-Used by:
-    src/cmi_evaluation.py, src/error_analysis_models.py and tests/test_uid_checks.py.
+Used by (importers found on main when this was written):
+    src/cmi_evaluation.py, src/error_analysis.py, src/error_analysis_models.py, src/label_agreement.py,
+    src/transformer_comparison.py, tests/test_uid_checks.py.
 
 Depends on:
     The standard library only.

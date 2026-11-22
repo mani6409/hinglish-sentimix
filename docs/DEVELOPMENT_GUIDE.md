@@ -8,7 +8,7 @@ For a new contributor: how to find things, run things, add things and check your
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt          # BiLSTM versions actually used: requirements-bilstm.txt
-python -m pytest -q                      # about 40 seconds; 284 tests on main
+python -m pytest -q                      # about 100 seconds; about 335 tests on main (the number grows with every merged pull request)
 ```
 
 - Always run scripts **from the repository root** with `python -m src.<module>` (not `python src/<module>.py`), because modules import each other as `src.<name>`.
@@ -44,8 +44,8 @@ python -m pytest -q                      # about 40 seconds; 284 tests on main
 1. Load tweets with `load_split("train")` and `load_split("dev")`; call `set_seed(seed)` first. Use the text version you intend to compare (`raw`, `clean` or `normalized` via `src/preprocess.py`).
 2. Fit everything on train; pick the best epoch or setting on dev.
 3. Write the dev predictions to `results/predictions/<name>_dev.csv` with exactly the columns `uid,label,pred`, all 3,000 dev uids once, labels spelled `negative`, `neutral`, `positive`. Runs that differ only in seed should end in `_s<seed>_seed<seed>` so `src/cmi_evaluation.py` groups them.
-4. Score with `compute_metrics` and append a row to `results/experiment_log.csv` (columns: date, who, model, data_version, settings, seed, dev_score, notes, lesson_learned; `dev_score` is weighted F1).
-5. Run `python -m src.cmi_evaluation`: your file is picked up automatically (it stops with a uid error if the file does not cover exactly the dev set).
+4. Score with `compute_metrics` and append a row to `results/experiment_log.csv` (nine columns: date, who, model, data_version, settings, seed, dev_score, notes, lesson_learned; `dev_score` is weighted F1). The file also has three computed columns (`dev_weighted_f1`, `dev_macro_f1`, `dev_accuracy`); run `python -m src.log_metrics` to fill them for your row.
+5. Run `python -m src.cmi_evaluation`: a file in `results/predictions/` is picked up automatically (it stops with a uid error if the file does not cover exactly the dev set). Predictions written outside that folder are not covered.
 6. Add tests (synthetic data, no GPU, no downloads) and a document in `docs/` that states settings, results and limits.
 7. Do **not** put a file that covers only part of dev (for example a sampled subset) into `results/predictions/`; keep it elsewhere, as the zero-shot file is.
 
@@ -74,8 +74,8 @@ def strip_docstrings(tree):
 
 ref = "origin/main"
 for path in sys.argv[1:]:
-    old = subprocess.run(["git", "show", f"{ref}:{path}"], capture_output=True, text=True).stdout
-    print("SAME   " if strip_docstrings(ast.parse(old)) == strip_docstrings(ast.parse(open(path).read())) else "CHANGED", path)
+    old = subprocess.run(["git", "show", f"{ref}:{path}"], capture_output=True, encoding="utf-8").stdout
+    print("SAME   " if strip_docstrings(ast.parse(old)) == strip_docstrings(ast.parse(open(path, encoding="utf-8").read())) else "CHANGED", path)
 ```
 
 ## 7. Working with GitHub

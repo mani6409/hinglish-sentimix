@@ -41,7 +41,8 @@ Outputs:
 
 Used by:
     Run from the command line, and again whenever new dev prediction files are added. Imported by
-    tests/test_cmi_evaluation.py.
+    src/error_analysis_models.py (``assign_bucket``, ``bucket_edges``, ``read_cmi_without_test``),
+    src/transformer_comparison.py, tests/test_cmi_evaluation.py and tests/test_error_analysis_models.py.
 
 Depends on:
     src/metrics.py (``compute_metrics``, ``LABELS``), src/seed.py, src/uid_checks.py, numpy, pandas.
@@ -49,10 +50,10 @@ Depends on:
 Design decisions:
     * Bucket cut points come from train only, so no dev or test information defines the groups.
     * A fast exact weighted F1 (``weighted_f1``) is used inside the bootstrap because calling scikit-learn
-      12,000 times was slow; a test checks that it equals ``compute_metrics``.
+      four groups of 1,000 resamples per prediction file (4,000 calls per file) was slow; a test checks that it equals ``compute_metrics``.
     * The random generator of each file is seeded from the file name with CRC32 (not Python's ``hash``, which
       changes between runs), so results repeat exactly.
-    * Intervals are not corrected for the number of comparisons (36 intervals for 12 files).
+    * Intervals are not corrected for the number of comparisons (3 comparisons per prediction file; 96 intervals for the 32 files in results/predictions/ when this was written).
 
 Limits:
     Every tweet in this data set is mixed, so "low" means moderately mixed, not single-language.

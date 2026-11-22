@@ -21,11 +21,16 @@ Inputs:
 Outputs:
     ``compute_metrics`` returns a dict; ``confusion`` returns a 3x3 list of lists.
 
-Used by:
-    Training and evaluation scripts (src/baselines_tfidf.py, src/train_bilstm.py, src/bilstm.py,
-    src/train_transformer.py, src/transformer_utils.py, src/indian_transformer.py, src/zero_shot_llm.py),
-    analysis scripts (src/eda_part1.py, src/eda_part2.py, src/cmi_evaluation.py,
-    src/error_analysis_models.py) and tests/test_metrics.py plus several other test files.
+Used by (importers found on main when this was written):
+    src/baselines_tfidf.py, src/bilstm.py, src/cmi_evaluation.py, src/eda_part1.py, src/eda_part2.py,
+    src/error_analysis.py, src/error_analysis_models.py, src/eval_protocol_utils.py,
+    src/evaluate_transformer_test.py, src/indian_transformer.py, src/log_metrics.py,
+    src/train_bilstm.py, src/train_transformer.py, src/transformer_comparison.py,
+    src/transformer_utils.py, src/zero_shot_llm.py, tests/synthetic_conll.py,
+    tests/test_bilstm_checkpoint.py, tests/test_bilstm_model.py, tests/test_cmi_evaluation.py,
+    tests/test_evaluate_transformer_test.py, tests/test_final_comparison.py,
+    tests/test_indian_transformer.py, tests/test_metrics.py, tests/test_transformer_experiments.py,
+    tests/test_transformer_pipeline.py.
 
 Depends on:
     scikit-learn (``precision_recall_fscore_support``, ``accuracy_score``, ``confusion_matrix``).

@@ -28,10 +28,12 @@ Inputs:
 Output:
     A DataFrame with the columns uid, label, text, tokens, langs, n_tokens (described in ``load_split``).
 
-Used by:
-    src/preprocess.py (``load_processed_split``), src/eda_part1.py, src/eda_part2.py, src/baselines_tfidf.py,
-    src/tfidf_error_analysis.py, src/zero_shot_llm.py, src/error_analysis_models.py,
-    tests/test_data_seed.py, tests/test_preprocess.py.
+Used by (importers found on main when this was written):
+    src/baselines_tfidf.py, src/eda_part1.py, src/eda_part2.py, src/error_analysis.py,
+    src/error_analysis_models.py, src/eval_protocol_utils.py, src/evaluate_transformer_test.py,
+    src/label_agreement.py, src/log_metrics.py, src/preprocess.py, src/tfidf_error_analysis.py,
+    src/zero_shot_llm.py, tests/test_data_seed.py, tests/test_error_analysis.py,
+    tests/test_preprocess.py, notebooks/bilstm.ipynb.
 
 Depends on:
     pandas and the Python standard library.
@@ -97,7 +99,8 @@ def parse_conll(path):
 
     Raises:
         ValueError: A header line has no tweet id, the id is not an integer, a token line appears before the
-            first header, or a token line has no TAB. The message contains ``path:line``.
+            first header, or a token line has no TAB (these messages contain ``path:line``). A tweet id that
+            is not an integer raises ``int()``'s own ValueError, without path or line.
         OSError: The file cannot be opened (for example FileNotFoundError).
 
     Edge cases:

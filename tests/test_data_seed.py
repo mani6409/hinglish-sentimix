@@ -95,7 +95,7 @@ def test_real_split_sizes_and_labels():
     Expected values: 14,000 / 3,000 / 3,000 tweets; train labels neutral 5,264, positive 4,634, negative
     4,102; dev labels neutral 1,128, positive 982, negative 890; every test tweet has a label from the
     separate labels file and only valid label names; uids unique in each split; every tweet has as many
-    language tags as tokens. They correspond to the percentages in docs/eda_part1.md. Prevents a changed or corrupted data
+    language tags as tokens (checked for the train split only). They correspond to the percentages in docs/eda_part1.md. Prevents a changed or corrupted data
     file, or a parser change, from going unnoticed.
     """
     tr, dv, te = load_split("train"), load_split("dev"), load_split("test")

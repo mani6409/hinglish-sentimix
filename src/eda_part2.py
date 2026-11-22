@@ -45,7 +45,7 @@ Depends on:
 Notes for maintainers:
     * Our mean CMI (about 29.8 on train) is higher than the paper's 25.3. See docs/eda_part2.md; the
       exact definition used by the organisers is an open question.
-    * ``dominant_share`` and ``md_escape`` are also defined in src/eda_part1.py and
+    * ``dominant_share`` is also defined in src/eda_part1.py, and ``md_escape`` is also defined in
       src/tfidf_error_analysis.py (same meaning; open point: they could be shared).
     * The 90% threshold for "near-monolingual" is written as a literal 0.9 here and as ``NEAR_MONO`` in
       src/eda_part1.py.
