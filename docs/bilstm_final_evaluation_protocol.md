@@ -1,5 +1,7 @@
 # BiLSTM final test evaluation protocol
 
+> **Note:** the scripts and tests named in this file (`src/evaluate_bilstm_test.py`, `src/analyze_bilstm_test.py` and their tests) were removed from the repository to keep it small (commit `8e6339e`). They are still in the git history before that commit. The saved results below were produced by them and are unchanged.
+
 **Status: frozen before the official test labels were read for any model purpose.** This document, `configs/bilstm_frozen_checkpoints.json`, `src/evaluate_bilstm_test.py` and `tests/test_evaluate_bilstm_test.py` define one single evaluation of nine already-trained models. Nothing in them may be changed after the test results are seen.
 
 ## 1. Purpose

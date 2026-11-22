@@ -6,9 +6,9 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-import src.bilstm_checkpoint as ck  # noqa: E402
-from src.bilstm_checkpoint import checkpoint_path, load_checkpoint  # noqa: E402
-from src.bilstm_data import PLACEHOLDER_WORDS, TextEncoder  # noqa: E402
+import src.bilstm as ck  # noqa: E402
+from src.bilstm import checkpoint_path, load_checkpoint  # noqa: E402
+from src.bilstm import PLACEHOLDER_WORDS, TextEncoder  # noqa: E402
 from src.metrics import compute_metrics  # noqa: E402
 from src.preprocess import PRESETS, load_processed_split, preprocess_text  # noqa: E402
 from src.train_bilstm import BiLSTMConfig, main, run_experiment  # noqa: E402

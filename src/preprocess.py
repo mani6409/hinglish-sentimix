@@ -107,23 +107,29 @@ def clean_text(
         if val not in allowed:
             raise ValueError(f"{name} must be one of {allowed}, got {val!r}")
 
+    # remove invisible and control characters; missing values become empty text
     s = _INVISIBLE_RE.sub("", _as_text(text))
     if not s.strip():
         return ""
 
+    # drop a leading 'RT' (retweet marker)
     if strip_rt:
         s = _LEADING_RT_RE.sub("", s)
 
+    # replace links with a temporary marker so the later steps cannot damage them
     if url != "keep":
         s = _URL_RE.sub(_URL_MARK, s)
+    # remove the '…' that Twitter adds to cut-off tweets
     if strip_truncation:
         s = _TRUNCATION_RE.sub(" ", s)
 
+    # replace @mentions with a temporary marker
     if mention != "keep":
         s = _MENTION_RE.sub(_MENTION_MARK, s)
         if collapse_mentions:
             s = re.sub(_MENTION_MARK + r"(?:\s*" + _MENTION_MARK + r")+", _MENTION_MARK, s)
 
+    # '# NewIndia' becomes 'NewIndia': the word is kept, the # sign is dropped
     if hashtag == "word":
         def _tag(m):
             w = m.group(1)
@@ -132,13 +138,16 @@ def clean_text(
     elif hashtag == "remove":
         s = _HASHTAG_RE.sub(" ", s)
 
+    # turn the markers into the final placeholders URL and USER (or remove them)
     s = s.replace(_URL_MARK, {"placeholder": f" {URL_PLACEHOLDER} ", "remove": " "}.get(url, " "))
     s = s.replace(_MENTION_MARK, {"placeholder": f" {MENTION_PLACEHOLDER} ", "remove": " "}.get(mention, " "))
 
+    # rejoin split contractions so negations such as "didn't" stay intact
     if fix_contractions:
         s = _CONTRACTION_RE.sub("'", s)
     if lowercase:
         s = s.lower()
+    # collapse repeated spaces
     return _WS_RE.sub(" ", s).strip()
 
 
@@ -159,10 +168,12 @@ def normalize_repeated_chars(text, max_repeat: int = 2) -> str:
     """
     if max_repeat < 1:
         raise ValueError("max_repeat must be >= 1")
+    # build the pattern once per setting and reuse it
     pat = _REPEAT_RE.get(max_repeat)
     if pat is None:
         pat = _REPEAT_RE[max_repeat] = re.compile(
             r"([^\W\d_])\1{%d,}" % max_repeat, re.IGNORECASE)
+    # cut every long run of one letter down to max_repeat letters
     return pat.sub(lambda m: m.group(0)[:max_repeat], _as_text(text))
 
 
@@ -198,6 +209,7 @@ def build_variant_map(variants: Mapping[str, object]) -> dict:
             if variant != canon:
                 flat[variant] = canon
             canonicals.add(canon)
+    # a word may not be both a variant and a canonical spelling
     clash = canonicals & set(flat)
     if clash:
         raise ValueError(f"canonical forms also listed as variants: {sorted(clash)}")
@@ -217,6 +229,7 @@ class HinglishNormalizer:
             variants = json.loads(Path(path or DEFAULT_VARIANTS_PATH).read_text(encoding="utf-8"))
         self.variant_map = build_variant_map(variants)
         if self.variant_map:
+            # longest variants first, so a long variant is not hidden by a shorter one
             alt = "|".join(sorted(map(re.escape, self.variant_map), key=len, reverse=True))
             # not glued to other word characters or apostrophes ("nhi" must not match inside "nhin'")
             self._re = re.compile(r"(?<![\w'’])(?:%s)(?![\w'’])" % alt, re.IGNORECASE)
@@ -227,6 +240,7 @@ class HinglishNormalizer:
         s = _as_text(text)
         if self._re is None:
             return s
+        # replace each variant with its canonical spelling, keeping the capital letters
         return self._re.sub(lambda m: _apply_case(m.group(0), self.variant_map[m.group(0).lower()]), s)
 
 

@@ -1,0 +1,8 @@
+{
+  "model": "tfidf_char_2-5",
+  "errors": 1163,
+  "errors_involving_neutral": 1021,
+  "share_involving_neutral": 0.8779,
+  "negative_positive_swaps": 142,
+  "bonferroni_threshold": 0.00833
+}

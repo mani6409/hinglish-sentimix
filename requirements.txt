@@ -5,9 +5,11 @@ transformers
 sentencepiece  # XLM-R and IndicBERT tokenizers
 datasets
 scikit-learn
+scipy
 pandas
 numpy
 matplotlib
 seaborn
 jupyter
 tqdm
+sentencepiece  # tokenizer of some Indic models (IndicBERT)
