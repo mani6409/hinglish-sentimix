@@ -8,11 +8,12 @@
 \begin{abstract}
 We study sentiment classification of Hindi--English (Hinglish) code-mixed tweets on the SemEval-2020 Task~9 data
 (14{,}000 training, 3{,}000 development and 3{,}000 test tweets; negative, neutral, positive). We compare a TF-IDF
-logistic-regression baseline, a BiLSTM over word and character embeddings, fine-tuned mBERT, XLM-R and IndicBERT, and a
+logistic-regression baseline, a BiLSTM over word and character embeddings, fine-tuned mBERT, XLM-R, MuRIL and IndicBERT, and a
 small zero-shot language model, and ask two questions: does normalising Romanised spelling help, and does the amount of
 code-mixing, measured by the Code-Mixing Index (CMI), change accuracy? On the development set TF-IDF, the BiLSTM and
 mBERT reach about 0.61 weighted F1; XLM-R reaches 0.627, a gain that holds on every seed but is close to the
-sampling error, and a single untuned IndicBERT run reaches 0.631. The BiLSTM reaches 0.657--0.668 weighted F1 on the test set, evaluated once under a protocol fixed in
+sampling error; MuRIL (three seeds) reaches the same 0.627 and a single IndicBERT run 0.631, differences smaller than the
+seed spread. The BiLSTM reaches 0.657--0.668 weighted F1 on the test set, evaluated once under a protocol fixed in
 advance; the other models were not evaluated on the test set. Spelling normalisation did not improve results, and we
 find no clear evidence that CMI bucket is related to performance. Most errors involve the neutral class, and about a
 quarter of a hand-read sample of errors have gold labels that look questionable.
@@ -32,10 +33,10 @@ Our project compares models of increasing strength and asks two research questio
 \end{enumerate}
 \textbf{Contributions.} (i) A reproducible pipeline with fixed splits, a single metric implementation, tests and a
 frozen one-time test protocol. (ii) A comparison of TF-IDF, a BiLSTM (three preprocessing versions, three seeds each) and
-fine-tuned mBERT and XLM-R (three seeds each, learning rate chosen on development data) and one IndicBERT run. (iii) A zero-shot run with a very
+fine-tuned mBERT and XLM-R (three seeds each, learning rate chosen on development data), MuRIL (three seeds) and one
+IndicBERT run. (iii) A zero-shot run with a very
 small language model, reported with its limits. (iv) An analysis by code-mixing bucket. (v) Error analyses: one by hand
-for the TF-IDF model and one by rules for six model settings. MuRIL fine-tuning code exists, but MuRIL was not
-trained (Section~\ref{sec:notdone}).
+for the TF-IDF model and one by rules over all development prediction files. What was not done is listed in Section~\ref{sec:notdone}.
 
 \section{Related work}
 \textbf{Task and data.} SentiMix \cite{patwa2020} released code-mixed tweets labelled by sentiment and with
@@ -132,10 +133,11 @@ XLM-R). We tried learning rates $10^{-5}$, $2\times10^{-5}$ and $3\times10^{-5}$
 with 4 epochs had its best epoch in the last epoch for every run, so more epochs were allowed) and kept the best per model:
 $2\times10^{-5}$ for mBERT and $10^{-5}$ for XLM-R. For XLM-R, $10^{-5}$ and $2\times10^{-5}$ were tied (0.6301 against
 0.6300). The selected setting was then run with seeds 43 and 44; together with the search run (seed 42, slightly optimistic
-because it helped choose the learning rate) this gives three seeds. IndicBERT (IndicBERTv2, ai4bharat/IndicBERTv2-MLM-only) was fine-tuned once on a GPU with seed 42 on the
-raw text, learning rate $2\times10^{-5}$, batch size 32, 3 epochs and maximum length 96, taking the best epoch on development
-weighted F1; its settings were not tuned and it was not repeated with other seeds. MuRIL fine-tuning code was written and tested
-on a tiny model, but MuRIL was not trained.
+because it helped choose the learning rate) this gives three seeds. MuRIL (google/muril-base-cased; seeds 42, 43 and 44) and IndicBERT (IndicBERTv2, ai4bharat/IndicBERTv2-MLM-only; seed 42 only)
+were fine-tuned on a GPU with identical, untuned settings: raw text, learning rate $2\times10^{-5}$, batch size 32, 3 epochs and
+maximum length 96, taking the best epoch on development weighted F1. In the runs we inspected (MuRIL seed 42 and IndicBERT) the
+best epoch was the last one (IndicBERT: 0.605, 0.625, 0.631), so they may have been undertrained. They were not tuned, and
+IndicBERT was not repeated with other seeds.
 
 \subsection{Zero-shot language model}
 As a zero-shot reference we prompted a very small open instruction-tuned model, Qwen2.5-0.5B-Instruct, run locally on a
@@ -153,10 +155,11 @@ feature sets or the three BiLSTM text versions on this set. XLM-R scores higher:
 mBERT on every seed (by 0.014 to 0.020). For one run of each model, a paired bootstrap over the same development tweets gives
 a difference mBERT minus XLM-R of $-0.014$ with a 95\% interval from $-0.030$ to $+0.003$, which just includes zero: the
 ranking holds across training seeds, but it is close to the sampling error of the tweets. XLM-R's gain of about 0.015 over
-TF-IDF and the BiLSTM is of the same size, so the same caution applies. XLM-R's learning rate won by a margin of 0.0001. A single
-IndicBERT run scored 0.6305, about the same as XLM-R's seed-42 run (0.6301), but it is not directly comparable: it used the raw
-text, 3 epochs, an untuned learning rate and one seed, and its score was still rising at the last epoch (0.605, 0.625, 0.631 at
-epochs 1 to 3), so it may have been undertrained.
+TF-IDF and the BiLSTM is of the same size, so the same caution applies. XLM-R's learning rate won by a margin of 0.0001. MuRIL (three seeds) scored $0.627 \pm 0.005$, the same as XLM-R, and a single IndicBERT run scored 0.6305, about the same as
+XLM-R's seed-42 run (0.6301). The differences among XLM-R, MuRIL and IndicBERT are within the seed spread, so we claim no winner
+among them. MuRIL and IndicBERT are not directly comparable with mBERT and XLM-R: they used the raw text, 3 epochs and an untuned
+learning rate (and IndicBERT one seed), and their scores were still rising at the last epoch in the runs we inspected, so they
+may have been undertrained.
 
 \begin{table}[h]
 \centering
@@ -173,6 +176,7 @@ BiLSTM clean (3 seeds) & 0.612 $\pm$ 0.002 & 0.617 $\pm$ 0.002 & 0.613 $\pm$ 0.0
 BiLSTM normalized (3 seeds) & 0.607 $\pm$ 0.001 & 0.611 $\pm$ 0.000 & 0.606 $\pm$ 0.001 \\
 mBERT (3 seeds) & 0.610 $\pm$ 0.005 & 0.614 $\pm$ 0.005 & 0.610 $\pm$ 0.005 \\
 XLM-R (3 seeds) & 0.627 $\pm$ 0.003 & 0.632 $\pm$ 0.003 & 0.631 $\pm$ 0.004 \\
+MuRIL (3 seeds, raw text, 3 epochs) & 0.627 $\pm$ 0.005 & 0.632 $\pm$ 0.005 & 0.629 $\pm$ 0.006 \\
 IndicBERT (1 seed, raw text, 3 epochs) & 0.6305 & 0.6360 & 0.6347 \\
 \hline
 \end{tabular}
@@ -210,7 +214,7 @@ primary prompt: 0.495.}
 \end{table}
 
 \subsection{Test set}
-Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs. \textbf{TF-IDF, mBERT, XLM-R, IndicBERT and the
+Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs. \textbf{TF-IDF, mBERT, XLM-R, MuRIL, IndicBERT and the
 zero-shot model were not evaluated on the test set}, so there is no test comparison between model families.
 
 \begin{table}[h]
@@ -245,13 +249,15 @@ do not claim statistical significance. The dictionary is small (25 words), so th
 did not help, and not that spelling normalisation cannot help.
 
 \subsection{Code-mixing}
-We scored the development predictions of every model in three CMI buckets (about 1{,}000 tweets each) and estimated, with a
-bootstrap, the difference in weighted F1 between buckets. Of 36 pairwise intervals (12 prediction files $\times$ 3
-comparisons), 35 contain zero; one does not (BiLSTM on normalized text, seed 43, low versus high), which is about the
-number expected by chance among 36 intervals at 95\%. High CMI is nominally the best bucket for all three TF-IDF models,
-but the gaps (0.01 to 0.03) are smaller than the sampling error of a bucket (about 0.03). We therefore find \emph{no
-clear evidence} of a relationship between CMI bucket and performance. With 1{,}000 tweets per bucket only differences of
-roughly 0.04 to 0.05 or more could be detected.
+We scored the development predictions of every prediction file in the repository's prediction folder (32 files: TF-IDF, BiLSTM,
+mBERT, XLM-R and MuRIL seeds 43 and 44, including learning-rate search runs; IndicBERT and MuRIL seed 42 are stored elsewhere
+and are not covered) in three CMI buckets (about 1{,}000 tweets each) and estimated, with a bootstrap, the difference in weighted
+F1 between buckets. Of 96 pairwise intervals (32 files $\times$ 3 comparisons) only one excludes zero (BiLSTM on normalized text,
+seed 43, low versus high; $-0.085$ to $-0.0005$). High CMI is nominally the best bucket in 26 of the 32 files, a consistent
+direction, but all files score the same 3{,}000 tweets, so this is largely one observation repeated, and each gap is smaller than
+the sampling error of a bucket (about 0.03). We therefore find \emph{no clear evidence} of a relationship between CMI bucket and
+performance, at most a weak tendency toward higher scores for more mixed tweets that these data cannot establish. With 1{,}000
+tweets per bucket only differences of roughly 0.04 to 0.05 or more could be detected.
 
 \section{Error analysis}
 \subsection{Where the errors are}
@@ -266,22 +272,25 @@ reliable link to errors for this model (the multi-model analysis below finds a s
 negation flag is a keyword heuristic.
 
 \subsection{All model settings}
-A rule-based analysis covers six settings: the three TF-IDF variants and the BiLSTM on three text versions (seeds merged by
-majority vote). Of 3{,}000 development tweets, 1{,}720 are wrong in at least one setting and 664 in all six. Between 88\% and
-91\% of each setting's errors involve the neutral class. The error sets overlap strongly (Jaccard 0.59 to 0.76), so changing
-the model family or the preprocessing changes only a minority of the errors. Error rates are higher with a negation word (0.440
-against 0.358) and with a spelling variant that the normaliser would change (0.421 against 0.380); both pass the Bonferroni
-threshold, but the tests treat every (setting, tweet) pair as independent and overstate certainty, and the flags are crude
-word lists. The error rate is between 0.370 and 0.403 in every CMI bucket and lowest in the high bucket for all six settings,
-but the intervals overlap, which agrees with the bucket analysis above. A flag for possible annotation errors marks 751 of the
-1{,}720 error tweets, which is too many to all be mislabelled; it narrows the list for a human check and does not measure label
-noise (docs/error\_analysis.md).
+A rule-based analysis pools every development prediction file in the repository: 27 settings (TF-IDF, the BiLSTM on three text
+versions and three word-only runs, the mBERT and XLM-R runs including the learning-rate search, MuRIL, IndicBERT and the zero-shot
+model on its 200 tweets; seeds of one setting merged by majority vote). The search runs are near-duplicates, so pooled counts
+describe all runs in the repository and not 27 independent models. Of 3{,}000 development tweets, 2{,}284 are wrong in at least one
+setting and 312 (10.4\%) in every setting that covers them. For the 26 settings that cover the whole development set, 86\% to
+91\% of the errors involve the neutral class. Pairs of the main settings share about half of their wrong tweets or more (Jaccard
+0.52 to 0.62); the three pretrained transformers overlap more with each other (0.58 to 0.62) than with the BiLSTM or TF-IDF (about
+0.52 to 0.53), yet no pair is close to identical, so changing model family changes a minority of the errors and most errors are
+shared. Error rates are higher with a negation word (0.434 against 0.358) and with a spelling variant that the normaliser would
+change (0.426 against 0.378); the tests pool near-duplicate runs and treat every (setting, tweet) pair as independent, so they
+overstate certainty, and the flags are crude word lists. A flag for possible annotation errors marks 546 of the 2{,}284 tweets,
+which is too many to all be mislabelled; it narrows the list for a human check and does not measure label noise
+(docs/error\_analysis.md).
 
 \subsection{Categories read by hand}
 We read a random sample of 60 development errors of the TF-IDF model and gave each one main category
 (Table~\ref{tab:cats}). This is a first-pass reading by one reader, and with 60 tweets each share is uncertain by about
-$\pm10$ points. \textbf{[PENDING: add raw agreement and Cohen's kappa once a second reader has labelled the same 60 tweets
-(python -m src.label\_agreement).]}
+$\pm10$ points. A second reader labelled the same 60 tweets with a different scheme (13 tone labels, not these 8 categories), so no agreement
+figure can be computed and the categories below remain one reader's judgement.
 
 \begin{table}[h]
 \centering
@@ -310,17 +319,17 @@ labelled neutral that read as clearly positive or negative. Only 1 of 60 errors 
 
 \section{Conclusion and limitations}
 \label{sec:notdone}
-On Hinglish SentiMix, fine-tuned XLM-R (0.627, three seeds) and IndicBERT (0.631, one untuned run) reached the highest
-development weighted F1, although the margin over TF-IDF, the BiLSTM and mBERT (all about 0.61) is close to the sampling error
+On Hinglish SentiMix, fine-tuned XLM-R (0.627, three seeds), MuRIL (0.627, three seeds) and IndicBERT (0.631, one untuned run)
+reached the highest development weighted F1, indistinguishable from one another, although the margin over TF-IDF, the BiLSTM and mBERT (all about 0.61) is close to the sampling error
 of 3{,}000 tweets. The BiLSTM with word and character
 embeddings reaches about 0.66 weighted F1 on the test set, and on development data it is indistinguishable from a TF-IDF
 baseline. A small spelling-normalisation dictionary did not help, and we find no clear evidence that code-mixing level changes
 accuracy. Errors concentrate at the boundary of the neutral class, are mostly shared by all models, and part of that boundary
 may reflect label noise.
 
-\textbf{Limitations and what was not done.} Only the BiLSTM was evaluated on the test set; TF-IDF, mBERT, XLM-R, IndicBERT and the
-zero-shot model were not. MuRIL was not trained (the code exists; a GPU is needed). IndicBERT was run once with untuned
-settings and was still improving at its last epoch. The zero-shot result comes from a
+\textbf{Limitations and what was not done.} Only the BiLSTM was evaluated on the test set; TF-IDF, mBERT, XLM-R, MuRIL, IndicBERT and the
+zero-shot model were not. MuRIL and IndicBERT were run with untuned settings, were still improving at their last epoch in the
+runs we inspected, and IndicBERT was run once only. The zero-shot result comes from a
 0.5-billion-parameter model on 200 development tweets and must not be read as the performance of language-model prompting in
 general. Three seeds per configuration give rough standard deviations, and XLM-R's learning rate was chosen on one seed by a
 margin of 0.0001. Our CMI values differ from the organisers' and every tweet is mixed, so the CMI groups are not monolingual
