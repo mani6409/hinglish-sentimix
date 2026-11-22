@@ -14,7 +14,7 @@
 - Bootstrap intervals for spelling normalisation: `results/bilstm_test_analysis/bilstm_final_analysis.md` (on `main`).
 
 ## What the report says was NOT done (keep it that way unless it changes)
-- No test-set evaluation for TF-IDF, mBERT, XLM-R or the zero-shot model; only the BiLSTM has test results.
+- No test-set evaluation for TF-IDF, mBERT, XLM-R, MuRIL, IndicBERT or the zero-shot model; only the BiLSTM has test results.
 - MuRIL and IndicBERT were run with untuned settings (3 epochs, best epoch was the last one in the runs inspected); IndicBERT was run once only (seed 42).
 - The zero-shot run uses a 0.5-billion-parameter model on 200 development tweets only.
 
