@@ -48,7 +48,7 @@ NEUTRAL = LABELS.index("neutral")
 
 
 def variant_words():
-    cfg = json.loads((ROOT / "configs" / "hinglish_variants.json").read_text())
+    cfg = json.loads((ROOT / "configs" / "hinglish_variants.json").read_text(encoding="utf-8"))
     return {v for k, vs in cfg.items() if not k.startswith("_") for v in vs}
 
 
@@ -150,7 +150,12 @@ def main():
         _, pval, _, _ = chi2_contingency(table)
         rows.append({"flag": col, "pct_of_errors": 100 * e.mean(), "pct_of_correct": 100 * c.mean(), "p_value": pval,
                      "bonferroni_threshold": threshold, "significant_after_bonferroni": bool(pval < threshold)})
-    pd.DataFrame(rows).round(4).to_csv(ROOT / "results" / "error_flag_rates.csv", index=False)
+    flag_rates = pd.DataFrame(rows)
+    other = [c for c in flag_rates.select_dtypes("float") if c != "p_value"]
+    flag_rates[other] = flag_rates[other].round(4)
+    # keep 3 significant digits so a tiny p-value shows as 1.2e-06 and not as 0.0
+    flag_rates["p_value"] = flag_rates["p_value"].map(lambda p: float(f"{p:.3g}"))
+    flag_rates.to_csv(ROOT / "results" / "error_flag_rates.csv", index=False)
 
     # the share of errors that involve neutral, computed from the confusion matrix and again from the rows
     from_matrix = neutral_error_counts(confusion(best["label"], best["pred"]))

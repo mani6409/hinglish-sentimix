@@ -1,7 +1,7 @@
 flag,pct_of_errors,pct_of_correct,p_value,bonferroni_threshold,significant_after_bonferroni
-negation_word,37.4893,30.049,0.0,0.0083,True
+negation_word,37.4893,30.049,2.85e-05,0.0083,True
 spelling_variant,13.8435,12.0305,0.163,0.0083,False
-truncated,9.2863,9.5264,0.8768,0.0083,False
-url,56.4058,56.8862,0.8252,0.0083,False
-repeated_letters,4.2132,5.2259,0.2409,0.0083,False
+truncated,9.2863,9.5264,0.877,0.0083,False
+url,56.4058,56.8862,0.825,0.0083,False
+repeated_letters,4.2132,5.2259,0.241,0.0083,False
 has_emoji,16.595,19.8694,0.028,0.0083,False

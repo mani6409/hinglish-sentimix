@@ -82,14 +82,16 @@ A random sample of 60 errors from the best baseline (seed 42) was read and each 
 Reading:
 - About a quarter of errors may be a labelling problem rather than a model problem. This agrees with the earlier note on confident mistakes (`docs/baselines_tfidf.md`) and with the paper's low annotator agreement (55%). It is not yet a measured noise rate; a second reader should re-label the same 60 tweets and we should report how often we agree.
 - Another fifth is context a word-count model cannot use. Models that read word order and context may help here, but cannot fix tweets with no sentiment words.
-- Only 2 of the 60 sit in the code-mixing category. In this sample, errors are not mainly caused by the mixing itself, which fits the flat CMI result in `docs/cmi_analysis.md`.
+- Only 1 of the 60 sits in the code-mixing category. In this sample, errors are not mainly caused by the mixing itself, which fits the flat CMI result in `docs/cmi_analysis.md`.
 
 ## 6. For the team
 - **Second reader (Ekta):** fill `results/error_categories_reviewer2_template.csv` without looking at `error_categories_manual.csv`, save it under a new name, and run `python -m src.label_agreement <file>`. Report raw agreement and Cohen's kappa in the report.
-- **Everyone:** when your model's dev predictions are ready, save them as `results/predictions/<model>_dev.csv` (columns `uid,label,pred`). `python -m src.cmi_evaluation` then scores them by CMI, and this script can be pointed at them.
-- **Experiment log:** `results/experiment_log.csv` now has `dev_weighted_f1`, `dev_macro_f1` and `dev_accuracy` columns for all 13 runs (majority floor, three TF-IDF models, nine BiLSTM runs). They are recomputed from the dev prediction files by `python -m src.log_metrics`, which also checks them against the existing `dev_score` column (weighted F1) and against the macro F1 and accuracy written in the BiLSTM rows' notes; all 13 agree. The original columns are unchanged. After logging a new experiment, rerun the script to fill the new columns for that row.
+- **Everyone:** when your model's dev predictions are ready, save them as `results/predictions/<model>_dev.csv` (columns `uid,label,pred`). `python -m src.cmi_evaluation` then scores them by CMI. `python -m src.error_analysis` currently reads only the three `tfidf_*_dev.csv` files and analyses one of them (`BEST`); analysing another model needs a small change to that script (not yet generic).
+- **Experiment log:** `results/experiment_log.csv` now has `dev_weighted_f1`, `dev_macro_f1` and `dev_accuracy` columns for all 16 runs (majority floor, three TF-IDF models, nine BiLSTM word+char runs, three BiLSTM word-only runs). They are recomputed from the dev prediction files by `python -m src.log_metrics`, which also checks them against the existing `dev_score` column (weighted F1) and against the macro F1 and accuracy written in the BiLSTM rows' notes; all 16 agree. The original columns are unchanged. After logging a new experiment, rerun the script to fill the new columns for that row.
 
 ## Limits
 - Dev set only; one model family; one reader for the hand categories.
 - The automatic flags are word lists, not understanding; "no" or "na" can be ordinary words.
 - Flag differences show association, not cause.
+- The negation flag matches whole words only, so it misses split contractions such as `don ’ t` (tokenised) and negation expressed without a listed word.
+- The tweet texts in `results/error_analysis.csv` and the reviewer template are **unmasked** (they contain `@mentions` and URL fragments). The data set is public (CC BY 4.0). Masked examples are used only where tweets are quoted in other documents.
