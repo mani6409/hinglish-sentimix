@@ -8,11 +8,11 @@
 \begin{abstract}
 We study sentiment classification of Hindi--English (Hinglish) code-mixed tweets on the SemEval-2020 Task~9 data
 (14{,}000 training, 3{,}000 development and 3{,}000 test tweets; negative, neutral, positive). We compare a TF-IDF
-logistic-regression baseline, a BiLSTM over word and character embeddings, fine-tuned mBERT and XLM-R, and a small
-zero-shot language model, and ask two questions: does normalising Romanised spelling help, and does the amount of
+logistic-regression baseline, a BiLSTM over word and character embeddings, fine-tuned mBERT, XLM-R and IndicBERT, and a
+small zero-shot language model, and ask two questions: does normalising Romanised spelling help, and does the amount of
 code-mixing, measured by the Code-Mixing Index (CMI), change accuracy? On the development set TF-IDF, the BiLSTM and
 mBERT reach about 0.61 weighted F1; XLM-R reaches 0.627, a gain that holds on every seed but is close to the
-sampling error. The BiLSTM reaches 0.657--0.668 weighted F1 on the test set, evaluated once under a protocol fixed in
+sampling error, and a single untuned IndicBERT run reaches 0.631. The BiLSTM reaches 0.657--0.668 weighted F1 on the test set, evaluated once under a protocol fixed in
 advance; the other models were not evaluated on the test set. Spelling normalisation did not improve results, and we
 find no clear evidence that CMI bucket is related to performance. Most errors involve the neutral class, and about a
 quarter of a hand-read sample of errors have gold labels that look questionable.
@@ -32,10 +32,10 @@ Our project compares models of increasing strength and asks two research questio
 \end{enumerate}
 \textbf{Contributions.} (i) A reproducible pipeline with fixed splits, a single metric implementation, tests and a
 frozen one-time test protocol. (ii) A comparison of TF-IDF, a BiLSTM (three preprocessing versions, three seeds each) and
-fine-tuned mBERT and XLM-R (three seeds each, learning rate chosen on development data). (iii) A zero-shot run with a very
+fine-tuned mBERT and XLM-R (three seeds each, learning rate chosen on development data) and one IndicBERT run. (iii) A zero-shot run with a very
 small language model, reported with its limits. (iv) An analysis by code-mixing bucket. (v) Error analyses: one by hand
-for the TF-IDF model and one by rules for six model settings. MuRIL and IndicBERT fine-tuning code exists, but those models
-were not trained (Section~\ref{sec:notdone}).
+for the TF-IDF model and one by rules for six model settings. MuRIL fine-tuning code exists, but MuRIL was not
+trained (Section~\ref{sec:notdone}).
 
 \section{Related work}
 \textbf{Task and data.} SentiMix \cite{patwa2020} released code-mixed tweets labelled by sentiment and with
@@ -132,8 +132,10 @@ XLM-R). We tried learning rates $10^{-5}$, $2\times10^{-5}$ and $3\times10^{-5}$
 with 4 epochs had its best epoch in the last epoch for every run, so more epochs were allowed) and kept the best per model:
 $2\times10^{-5}$ for mBERT and $10^{-5}$ for XLM-R. For XLM-R, $10^{-5}$ and $2\times10^{-5}$ were tied (0.6301 against
 0.6300). The selected setting was then run with seeds 43 and 44; together with the search run (seed 42, slightly optimistic
-because it helped choose the learning rate) this gives three seeds. MuRIL and IndicBERT checkpoints were inspected and
-fine-tuning code was written and tested on a tiny model, but the models were not trained because that needs a GPU.
+because it helped choose the learning rate) this gives three seeds. IndicBERT (IndicBERTv2, ai4bharat/IndicBERTv2-MLM-only) was fine-tuned once on a GPU with seed 42 on the
+raw text, learning rate $2\times10^{-5}$, batch size 32, 3 epochs and maximum length 96, taking the best epoch on development
+weighted F1; its settings were not tuned and it was not repeated with other seeds. MuRIL fine-tuning code was written and tested
+on a tiny model, but MuRIL was not trained.
 
 \subsection{Zero-shot language model}
 As a zero-shot reference we prompted a very small open instruction-tuned model, Qwen2.5-0.5B-Instruct, run locally on a
@@ -151,7 +153,10 @@ feature sets or the three BiLSTM text versions on this set. XLM-R scores higher:
 mBERT on every seed (by 0.014 to 0.020). For one run of each model, a paired bootstrap over the same development tweets gives
 a difference mBERT minus XLM-R of $-0.014$ with a 95\% interval from $-0.030$ to $+0.003$, which just includes zero: the
 ranking holds across training seeds, but it is close to the sampling error of the tweets. XLM-R's gain of about 0.015 over
-TF-IDF and the BiLSTM is of the same size, so the same caution applies. XLM-R's learning rate won by a margin of 0.0001.
+TF-IDF and the BiLSTM is of the same size, so the same caution applies. XLM-R's learning rate won by a margin of 0.0001. A single
+IndicBERT run scored 0.6305, about the same as XLM-R's seed-42 run (0.6301), but it is not directly comparable: it used the raw
+text, 3 epochs, an untuned learning rate and one seed, and its score was still rising at the last epoch (0.605, 0.625, 0.631 at
+epochs 1 to 3), so it may have been undertrained.
 
 \begin{table}[h]
 \centering
@@ -168,10 +173,11 @@ BiLSTM clean (3 seeds) & 0.612 $\pm$ 0.002 & 0.617 $\pm$ 0.002 & 0.613 $\pm$ 0.0
 BiLSTM normalized (3 seeds) & 0.607 $\pm$ 0.001 & 0.611 $\pm$ 0.000 & 0.606 $\pm$ 0.001 \\
 mBERT (3 seeds) & 0.610 $\pm$ 0.005 & 0.614 $\pm$ 0.005 & 0.610 $\pm$ 0.005 \\
 XLM-R (3 seeds) & 0.627 $\pm$ 0.003 & 0.632 $\pm$ 0.003 & 0.631 $\pm$ 0.004 \\
+IndicBERT (1 seed, raw text, 3 epochs) & 0.6305 & 0.6360 & 0.6347 \\
 \hline
 \end{tabular}
 \caption{Development-set results (results/baseline\_scores.csv, results/experiment\_log.csv, reports/bilstm\_final\_analysis.md,
-results/transformer\_comparison.csv). BiLSTM and transformer dev scores are the best epoch per run and are optimistically selected.}
+results/transformer\_comparison.csv, results/indicbert\_dev\_scores\_seed42.json). BiLSTM and transformer dev scores are the best epoch per run and are optimistically selected.}
 \label{tab:dev}
 \end{table}
 
@@ -204,7 +210,7 @@ primary prompt: 0.495.}
 \end{table}
 
 \subsection{Test set}
-Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs. \textbf{TF-IDF, mBERT, XLM-R and the
+Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs. \textbf{TF-IDF, mBERT, XLM-R, IndicBERT and the
 zero-shot model were not evaluated on the test set}, so there is no test comparison between model families.
 
 \begin{table}[h]
@@ -304,15 +310,17 @@ labelled neutral that read as clearly positive or negative. Only 1 of 60 errors 
 
 \section{Conclusion and limitations}
 \label{sec:notdone}
-On Hinglish SentiMix, fine-tuned XLM-R reached the highest development weighted F1 (0.627), although the margin over TF-IDF,
-the BiLSTM and mBERT (all about 0.61) is close to the sampling error of 3{,}000 tweets. The BiLSTM with word and character
+On Hinglish SentiMix, fine-tuned XLM-R (0.627, three seeds) and IndicBERT (0.631, one untuned run) reached the highest
+development weighted F1, although the margin over TF-IDF, the BiLSTM and mBERT (all about 0.61) is close to the sampling error
+of 3{,}000 tweets. The BiLSTM with word and character
 embeddings reaches about 0.66 weighted F1 on the test set, and on development data it is indistinguishable from a TF-IDF
 baseline. A small spelling-normalisation dictionary did not help, and we find no clear evidence that code-mixing level changes
 accuracy. Errors concentrate at the boundary of the neutral class, are mostly shared by all models, and part of that boundary
 may reflect label noise.
 
-\textbf{Limitations and what was not done.} Only the BiLSTM was evaluated on the test set; TF-IDF, mBERT, XLM-R and the zero-shot
-model were not. MuRIL and IndicBERT were not trained (the code exists; a GPU is needed). The zero-shot result comes from a
+\textbf{Limitations and what was not done.} Only the BiLSTM was evaluated on the test set; TF-IDF, mBERT, XLM-R, IndicBERT and the
+zero-shot model were not. MuRIL was not trained (the code exists; a GPU is needed). IndicBERT was run once with untuned
+settings and was still improving at its last epoch. The zero-shot result comes from a
 0.5-billion-parameter model on 200 development tweets and must not be read as the performance of language-model prompting in
 general. Three seeds per configuration give rough standard deviations, and XLM-R's learning rate was chosen on one seed by a
 margin of 0.0001. Our CMI values differ from the organisers' and every tweet is mixed, so the CMI groups are not monolingual
