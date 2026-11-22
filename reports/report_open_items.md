@@ -9,12 +9,13 @@
 ## Where the new numbers come from
 - mBERT and XLM-R (development): `results/transformer_comparison.csv`, `results/transformer_pairwise.csv` and `docs/transformer_results.md` (on `main`).
 - MuRIL (three seeds) and IndicBERT (one seed), development: `results/muril_*` and `results/indicbert_*` files and `docs/indian_transformer_results.md` (on `main`).
+- mBERT and XLM-R (test): `results/transformer_final_test/`, `results/final_model_comparison.csv` (on `main`).
 - Zero-shot (200 development tweets): `docs/zero_shot_results.md` and `results/zero_shot_dev_predictions.csv` (on `main`).
 - Multi-model error analysis (27 pooled settings) and CMI bucket results over 32 prediction files: `docs/error_analysis.md`, `results/error_*.csv`, `results/cmi_bucket_*.csv` (on `main`, regenerated in #29). Pooled counts include near-duplicate learning-rate search runs.
 - Bootstrap intervals for spelling normalisation: `results/bilstm_test_analysis/bilstm_final_analysis.md` (on `main`).
 
 ## What the report says was NOT done (keep it that way unless it changes)
-- No test-set evaluation for TF-IDF, mBERT, XLM-R, MuRIL, IndicBERT or the zero-shot model; only the BiLSTM has test results.
+- No test-set evaluation for TF-IDF, MuRIL, IndicBERT or the zero-shot model. Test results exist for the BiLSTM (`results/bilstm_final_test/`) and for mBERT and XLM-R (`results/transformer_final_test/`, one-time run, recomputed from the saved predictions).
 - MuRIL and IndicBERT were run with untuned settings (3 epochs, best epoch was the last one in the runs inspected); IndicBERT was run once only (seed 42).
 - The zero-shot run uses a 0.5-billion-parameter model on 200 development tweets only.
 

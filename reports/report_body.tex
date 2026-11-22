@@ -13,8 +13,7 @@ small zero-shot language model, and ask two questions: does normalising Romanise
 code-mixing, measured by the Code-Mixing Index (CMI), change accuracy? On the development set TF-IDF, the BiLSTM and
 mBERT reach about 0.61 weighted F1; XLM-R reaches 0.627, a gain that holds on every seed but is close to the
 sampling error; MuRIL (three seeds) reaches the same 0.627 and a single IndicBERT run 0.631, differences smaller than the
-seed spread. The BiLSTM reaches 0.657--0.668 weighted F1 on the test set, evaluated once under a protocol fixed in
-advance; the other models were not evaluated on the test set. Spelling normalisation did not improve results, and we
+seed spread. On the test set, each model evaluated once under a protocol fixed in advance, XLM-R reaches 0.701 weighted F1, mBERT 0.687 and the BiLSTM 0.657--0.668; TF-IDF, MuRIL, IndicBERT and the zero-shot model were not evaluated on the test set. Spelling normalisation did not improve results, and we
 find no clear evidence that CMI bucket is related to performance. Most errors involve the neutral class, and about a
 quarter of a hand-read sample of errors have gold labels that look questionable.
 \end{abstract}
@@ -101,7 +100,7 @@ moderately mixed with heavily mixed text and not monolingual with mixed text (Fi
 Models are trained on the training set. The development set is used for early stopping and for comparing settings. The
 test set is used once, for final evaluation, under a protocol written before the test labels were used for any
 model purpose; test predictions are saved before test labels are read, and no result selects a model, seed or setting.
-Each BiLSTM configuration was trained with seeds 42, 43 and 44. We report mean $\pm$ sample standard deviation over seeds.
+Each BiLSTM and transformer configuration was trained with seeds 42, 43 and 44, and we report mean $\pm$ sample standard deviation over seeds. The transformers followed the same one-time rules: six frozen checkpoints (mBERT and XLM-R, three seeds each), each of which had to reproduce its development predictions exactly before any test label was read, and all six runs are reported.
 The unit tests and the team's exploratory data analysis loaded the test split for descriptive statistics, and this is
 disclosed in the repository (docs/bilstm\_final\_evaluation\_protocol.md).
 
@@ -214,29 +213,29 @@ primary prompt: 0.495.}
 \end{table}
 
 \subsection{Test set}
-Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs. \textbf{TF-IDF, mBERT, XLM-R, MuRIL, IndicBERT and the
-zero-shot model were not evaluated on the test set}, so there is no test comparison between model families.
+Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs and the six transformer runs. \textbf{TF-IDF, MuRIL, IndicBERT and the zero-shot model were not evaluated on the test set}, so there is no test comparison for them.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{lrrr}
 \hline
-BiLSTM text version & Weighted F1 & Macro F1 & Accuracy \\
+Model & Weighted F1 & Macro F1 & Accuracy \\
 \hline
-Raw        & 0.660 $\pm$ 0.007 & 0.662 $\pm$ 0.008 & 0.658 $\pm$ 0.005 \\
-Clean      & 0.668 $\pm$ 0.002 & 0.672 $\pm$ 0.003 & 0.667 $\pm$ 0.004 \\
-Normalized & 0.657 $\pm$ 0.006 & 0.659 $\pm$ 0.006 & 0.653 $\pm$ 0.007 \\
+BiLSTM, raw text & 0.660 $\pm$ 0.007 & 0.662 $\pm$ 0.008 & 0.658 $\pm$ 0.005 \\
+BiLSTM, clean text & 0.668 $\pm$ 0.002 & 0.672 $\pm$ 0.003 & 0.667 $\pm$ 0.004 \\
+BiLSTM, normalized text & 0.657 $\pm$ 0.006 & 0.659 $\pm$ 0.006 & 0.653 $\pm$ 0.007 \\
+mBERT (lr $2\times10^{-5}$) & 0.687 $\pm$ 0.008 & 0.689 $\pm$ 0.008 & 0.685 $\pm$ 0.007 \\
+XLM-R (lr $10^{-5}$) & 0.701 $\pm$ 0.004 & 0.703 $\pm$ 0.004 & 0.700 $\pm$ 0.004 \\
 \hline
 \end{tabular}
-\caption{Test-set results, mean $\pm$ sample standard deviation over seeds 42--44 (results/bilstm\_final\_test/). For reference,
+\caption{Test-set results, mean $\pm$ sample standard deviation over seeds 42--44 (results/bilstm\_final\_test/, results/transformer\_final\_test/). For reference,
 the best SemEval Hinglish system reached 0.750 weighted F1 \cite{patwa2020}.}
 \label{tab:test}
 \end{table}
 
-Test scores are 0.047 to 0.054 macro F1 higher than development scores for every text version. We checked uid alignment,
-label mapping, class mix, tweet length, code-mixing and out-of-vocabulary rates, and none explains the gap; re-weighting the
-test set to the development class mix changes macro F1 by less than 0.001. Whether the test tweets are simply easier, or the
-gap is specific to this model family, is untested.
+XLM-R is about 0.03 to 0.04 weighted F1 above the three BiLSTM versions and 0.014 above mBERT; mBERT is about 0.02 to 0.03 above the BiLSTM. XLM-R is ahead of mBERT on every seed (by 0.005 to 0.027). The test set is one sample of 3{,}000 tweets, so each score carries a sampling error of roughly $\pm0.01$ that is not estimated here: the gaps to the BiLSTM are several times that, while the gap between XLM-R and mBERT is not clearly beyond it. These results describe the frozen settings; XLM-R's learning rate $10^{-5}$ won its search by a margin of 0.0001. The ordering on the test set (XLM-R, then mBERT, then the BiLSTM) is clearer than on development data, where mBERT, the BiLSTM and TF-IDF were indistinguishable.
+
+Test scores are higher than development scores for every model we evaluated: by 0.047 to 0.054 macro F1 for the three BiLSTM versions, and by about 0.07 for XLM-R (0.071) and 0.075 for mBERT. For the BiLSTM we checked uid alignment, label mapping, class mix, tweet length, code-mixing and out-of-vocabulary rates, and none explains the gap; re-weighting the test set to the development class mix changes macro F1 by less than 0.001. The gap is therefore not specific to one model family. Whether the test tweets are simply easier is untested; running the TF-IDF baseline on the test set would help, but it was not done.
 
 \section{Ablations}
 \subsection{Spelling normalisation}
@@ -319,22 +318,16 @@ labelled neutral that read as clearly positive or negative. Only 1 of 60 errors 
 
 \section{Conclusion and limitations}
 \label{sec:notdone}
-On Hinglish SentiMix, fine-tuned XLM-R (0.627, three seeds), MuRIL (0.627, three seeds) and IndicBERT (0.631, one untuned run)
-reached the highest development weighted F1, indistinguishable from one another, although the margin over TF-IDF, the BiLSTM and mBERT (all about 0.61) is close to the sampling error
-of 3{,}000 tweets. The BiLSTM with word and character
-embeddings reaches about 0.66 weighted F1 on the test set, and on development data it is indistinguishable from a TF-IDF
-baseline. A small spelling-normalisation dictionary did not help, and we find no clear evidence that code-mixing level changes
+On Hinglish SentiMix, fine-tuned XLM-R was the strongest model we evaluated on the test set (0.701 weighted F1, three seeds), ahead of mBERT (0.687) and the BiLSTM with word and character embeddings (0.657 to 0.668); all are below the best SemEval system (0.750). On development data the picture was less clear: TF-IDF, the BiLSTM and mBERT were indistinguishable at about 0.61, and XLM-R, MuRIL and IndicBERT reached 0.627 to 0.631, within the seed spread of one another and close to the sampling error of 3{,}000 tweets. A small spelling-normalisation dictionary did not help, and we find no clear evidence that code-mixing level changes
 accuracy. Errors concentrate at the boundary of the neutral class, are mostly shared by all models, and part of that boundary
 may reflect label noise.
 
-\textbf{Limitations and what was not done.} Only the BiLSTM was evaluated on the test set; TF-IDF, mBERT, XLM-R, MuRIL, IndicBERT and the
-zero-shot model were not. MuRIL and IndicBERT were run with untuned settings, were still improving at their last epoch in the
+\textbf{Limitations and what was not done.} Only the BiLSTM, mBERT and XLM-R were evaluated on the test set (once, three seeds each); TF-IDF, MuRIL, IndicBERT and the zero-shot model were not, so there is no test comparison for them. MuRIL and IndicBERT were run with untuned settings, were still improving at their last epoch in the
 runs we inspected, and IndicBERT was run once only. The zero-shot result comes from a
 0.5-billion-parameter model on 200 development tweets and must not be read as the performance of language-model prompting in
 general. Three seeds per configuration give rough standard deviations, and XLM-R's learning rate was chosen on one seed by a
 margin of 0.0001. Our CMI values differ from the organisers' and every tweet is mixed, so the CMI groups are not monolingual
-versus mixed. The hand-read categories come from one reader. The development-to-test gap is unexplained. The best SemEval system
-(0.750 weighted F1) is well above our scores.
+versus mixed. The hand-read categories come from one reader. The development-to-test gap, which appears for every evaluated model, is unexplained. The best SemEval system (0.750 weighted F1) is above our best test score (0.701).
 
 \begin{thebibliography}{9}
 \bibitem{patwa2020} Patwa, P., Aguilar, G., Kar, S., Pandey, S., PYKL, S., Gamb\"ack, B., Chakraborty, T., Solorio, T.,
