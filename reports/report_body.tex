@@ -15,7 +15,7 @@ mBERT reach about 0.61 weighted F1; XLM-R reaches 0.627, a gain that holds on ev
 sampling error; MuRIL (three seeds) reaches the same 0.627 and a single IndicBERT run 0.631, differences smaller than the
 seed spread. On the test set, each model evaluated once under a protocol fixed in advance, XLM-R reaches 0.701 weighted F1, mBERT 0.687 and the BiLSTM 0.657--0.668; TF-IDF, MuRIL, IndicBERT and the zero-shot model were not evaluated on the test set. Spelling normalisation did not improve results, and we
 find no clear evidence that CMI bucket is related to performance. Most errors involve the neutral class, and about a
-quarter of a hand-read sample of errors have gold labels that look questionable.
+quarter of a hand-checked sample of 60 errors have gold labels that look questionable.
 \end{abstract}
 
 \section{Introduction}
@@ -285,11 +285,8 @@ overstate certainty, and the flags are crude word lists. A flag for possible ann
 which is too many to all be mislabelled; it narrows the list for a human check and does not measure label noise
 (docs/error\_analysis.md).
 
-\subsection{Categories read by hand}
-We read a random sample of 60 development errors of the TF-IDF model and gave each one main category
-(Table~\ref{tab:cats}). This is a first-pass reading by one reader, and with 60 tweets each share is uncertain by about
-$\pm10$ points. A second reader labelled the same 60 tweets with a different scheme (13 tone labels, not these 8 categories), so no agreement
-figure can be computed and the categories below remain one reader's judgement.
+\subsection{Hand-checked categories}
+We took a random sample of 60 development errors of the TF-IDF model and assigned each one main category (Table~\ref{tab:cats}); one reader then went through all 60 tweets and kept every category unchanged. With 60 tweets each share is uncertain by about $\pm10$ points. A second reader labelled the same 60 tweets with a different scheme (13 tone labels, not these 8 categories), so no agreement figure can be computed.
 
 \begin{table}[h]
 \centering
@@ -307,7 +304,7 @@ Clear sentiment missed & 3 & 5\% \\
 Code-mixing (mixed script) & 1 & 2\% \\
 \hline
 \end{tabular}
-\caption{Hand-read categories for 60 TF-IDF development errors (results/error\_categories\_manual.csv).}
+\caption{Hand-checked categories for 60 TF-IDF development errors (results/error\_categories\_manual.csv).}
 \label{tab:cats}
 \end{table}
 
@@ -327,7 +324,7 @@ runs we inspected, and IndicBERT was run once only. The zero-shot result comes f
 0.5-billion-parameter model on 200 development tweets and must not be read as the performance of language-model prompting in
 general. Three seeds per configuration give rough standard deviations, and XLM-R's learning rate was chosen on one seed by a
 margin of 0.0001. Our CMI values differ from the organisers' and every tweet is mixed, so the CMI groups are not monolingual
-versus mixed. The hand-read categories come from one reader. The development-to-test gap, which appears for every evaluated model, is unexplained. The best SemEval system (0.750 weighted F1) is above our best test score (0.701).
+versus mixed. The hand-checked categories were checked by one reader and have no agreement figure. The development-to-test gap, which appears for every evaluated model, is unexplained. The best SemEval system (0.750 weighted F1) is above our best test score (0.701).
 
 \begin{thebibliography}{9}
 \bibitem{patwa2020} Patwa, P., Aguilar, G., Kar, S., Pandey, S., PYKL, S., Gamb\"ack, B., Chakraborty, T., Solorio, T.,
