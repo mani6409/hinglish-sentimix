@@ -1,0 +1,64 @@
+{
+  "model": "google/muril-base-cased",
+  "seed": 42,
+  "config": {
+    "text_mode": "raw",
+    "max_len": 96,
+    "batch_size": 32,
+    "lr": 2e-05,
+    "epochs": 3,
+    "max_train_samples": 0,
+    "max_dev_samples": 0
+  },
+  "best_epoch": 3,
+  "dev_metrics": {
+    "weighted_f1": 0.6280840700481952,
+    "macro_f1": 0.6325867117142412,
+    "accuracy": 0.6306666666666667,
+    "per_class": {
+      "negative": {
+        "precision": 0.6275787187839305,
+        "recall": 0.6494382022471911,
+        "f1": 0.6383213694091662,
+        "support": 890
+      },
+      "neutral": {
+        "precision": 0.5712890625,
+        "recall": 0.5186170212765957,
+        "f1": 0.5436802973977695,
+        "support": 1128
+      },
+      "positive": {
+        "precision": 0.6909952606635071,
+        "recall": 0.7423625254582484,
+        "f1": 0.7157584683357879,
+        "support": 982
+      }
+    }
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.0076,
+      "dev_weighted_f1": 0.5143,
+      "dev_macro_f1": 0.5303,
+      "dev_accuracy": 0.5657
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.8495,
+      "dev_weighted_f1": 0.6217,
+      "dev_macro_f1": 0.6257,
+      "dev_accuracy": 0.62
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.7654,
+      "dev_weighted_f1": 0.6281,
+      "dev_macro_f1": 0.6326,
+      "dev_accuracy": 0.6307
+    }
+  ],
+  "device": "cuda",
+  "train_seconds": 320.7
+}
