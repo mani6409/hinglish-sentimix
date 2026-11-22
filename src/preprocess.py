@@ -179,6 +179,7 @@ def normalize_repeated_chars(text, max_repeat: int = 2) -> str:
 
 # ------------------------------------------------------- normalize_hinglish --
 def _apply_case(original: str, replacement: str) -> str:
+    """Give `replacement` the same capital-letter pattern as `original` (ALL CAPS, Capitalised or lower)."""
     if len(original) > 1 and original.isupper():
         return replacement.upper()
     if original[:1].isupper():

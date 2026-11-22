@@ -180,6 +180,7 @@ class TextEncoder:
 
     @classmethod
     def from_dict(cls, d: dict) -> "TextEncoder":
+        """Rebuild an encoder from `to_dict` output (used when loading a checkpoint)."""
         return cls(Vocab(d["word_itos"]), Vocab(d["char_itos"]), d["max_words"], d["max_chars"],
                    d["lowercase_words"], d["lowercase_chars"], d["special_words"])
 

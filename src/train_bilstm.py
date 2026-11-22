@@ -100,6 +100,7 @@ class BiLSTMConfig:
     device: str = "auto"                 # auto | cpu | cuda
 
     def validate(self) -> "BiLSTMConfig":
+        """Raise ValueError on an impossible setting (unknown mode, negative size, ...) before any training starts."""
         if self.mode not in PRESETS:
             raise ValueError(f"mode must be one of {list(PRESETS)}, got {self.mode!r}")
         if self.pooling not in POOLINGS:
@@ -119,6 +120,7 @@ class BiLSTMConfig:
         return self
 
     def with_overrides(self, overrides: dict) -> "BiLSTMConfig":
+        """A validated copy with some fields changed. Unknown keys raise ValueError, so a typo cannot be ignored."""
         known = {f.name for f in fields(self)}
         bad = set(overrides) - known
         if bad:
@@ -140,6 +142,7 @@ class BiLSTMConfig:
 
 # ----------------------------------------------------------- one training ----
 def _resolve_device(name: str) -> torch.device:
+    """The torch device for `name`; with "auto" the GPU is used when one is available, otherwise the CPU."""
     if name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(name)
@@ -158,6 +161,7 @@ def predict(model: nn.Module, loader: DataLoader, device: torch.device) -> List[
 
 
 def _evaluate(model, loader, device, true_labels):
+    """Predict every row of `loader` and score it. Returns (predicted label names, compute_metrics dict)."""
     pred = [ID2LABEL[i] for i in predict(model, loader, device)]
     return pred, compute_metrics(true_labels, pred)
 
@@ -503,6 +507,7 @@ def run_experiment(train_df, dev_df, cfg: BiLSTMConfig, seeds: List[int], out_di
 
 # -------------------------------------------------------------------- CLI ----
 def _parse_set(items: Optional[List[str]]) -> dict:
+    """Turn the --set KEY=VALUE arguments into a dict, reading each value as JSON when possible."""
     out = {}
     for item in items or []:
         if "=" not in item:

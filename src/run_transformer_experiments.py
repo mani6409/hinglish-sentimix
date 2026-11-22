@@ -64,6 +64,8 @@ def search_csv_name(suffix: str = "") -> str:
 
 def run_training(model: str, lr: float, seeds: List[int], run_name: str, out_dir: Path, mode: str,
                  config: str, extra: List[str]) -> None:
+    """Run src.train_transformer as a separate process (so GPU memory is fully freed between runs).
+    Skipped if the run's scores JSON already exists, which makes the driver safe to restart."""
     if scores_path(out_dir, run_name).exists():
         print(f"[skip] {run_name}: {scores_path(out_dir, run_name)} exists")
         return

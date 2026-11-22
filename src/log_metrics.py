@@ -43,6 +43,8 @@ def prediction_file(row):
 
 
 def scores_for(row, dev):
+    """(weighted F1, macro F1, accuracy) for one log row, recomputed from its dev prediction file
+    (joined to the dev split by uid). The majority-class row has no file and is rebuilt from `settings`."""
     path = prediction_file(row)
     if path is None:  # always predict the label named in `settings`
         label = re.search(r"'(\w+)'", str(row["settings"])).group(1)

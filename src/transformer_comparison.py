@@ -58,6 +58,7 @@ def full_metrics(y_true, y_pred) -> dict:
 
 
 def selected_lrs(out_dir: Path, suffix: str = "") -> Dict[str, float]:
+    """{model: learning rate} for the rows marked selected in the lr-search CSV."""
     with open(out_dir / search_csv_name(suffix), encoding="utf-8", newline="") as f:
         return {r["model"]: float(r["lr"]) for r in csv.DictReader(f) if r["selected"] == "True"}
 
@@ -128,6 +129,8 @@ def baseline_rows(out_dir: Path) -> List[dict]:
 
 
 def build(models: List[str], mode: str, out_dir: Path, write: bool = True, suffix: str = "") -> dict:
+    """Collect each model's three seeds at its selected lr, summarise them (mean, sd, representative median run)
+    and compare the two models per seed and with a paired bootstrap. Returns {"rows", "pairs", "runs"}."""
     lrs = selected_lrs(out_dir, suffix)
     all_runs = {}
     rows = []

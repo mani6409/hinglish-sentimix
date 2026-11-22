@@ -43,6 +43,7 @@ MODEL_ALIASES = {
 
 
 def resolve_model_name(name: str) -> str:
+    """Short alias -> full Hugging Face id ("xlmr" -> "xlm-roberta-base"); any other name is returned unchanged."""
     return MODEL_ALIASES.get(name, name)
 
 
@@ -126,6 +127,7 @@ class TransformerConfig:
 
 
 def resolve_device(name: str):
+    """The torch device for "auto", "cpu" or "cuda". Asking for "cuda" without a GPU is an error, not a silent CPU run."""
     import torch
 
     if name == "auto":
@@ -137,6 +139,7 @@ def resolve_device(name: str):
 
 # ---------------------------------------------------- model and tokenizer ----
 def load_tokenizer(model_name: str):
+    """The model's own subword tokenizer (WordPiece for mBERT, SentencePiece for XLM-R)."""
     from transformers import AutoTokenizer
 
     return AutoTokenizer.from_pretrained(resolve_model_name(model_name))
@@ -147,6 +150,8 @@ def load_model(model_name: str, dropout: Optional[float] = None):
     from transformers import AutoConfig, AutoModelForSequenceClassification
 
     name = resolve_model_name(model_name)
+    # the pretrained encoder weights are loaded; the classification layer is new and starts random.
+    # id2label / label2id fix the class order to src.metrics.LABELS
     config = AutoConfig.from_pretrained(name, num_labels=len(LABELS), id2label=dict(ID2LABEL),
                                         label2id=dict(LABEL2ID))
     if dropout is not None:  # BERT-style and XLM-R configs share these names
@@ -164,6 +169,7 @@ def token_lengths(tokenizer, texts: Sequence[str]) -> List[int]:
 
 
 def length_stats(lengths: Sequence[int]) -> dict:
+    """Count, mean, a few percentiles and the maximum of a list of lengths."""
     arr = np.asarray(lengths)
     pct = {f"p{p}": float(np.percentile(arr, p)) for p in (50, 90, 95, 99, 99.9)}
     return {"n": int(arr.size), "mean": round(float(arr.mean()), 2), **pct, "max": int(arr.max())}
@@ -187,6 +193,7 @@ def model_position_limit(tokenizer) -> int:
 
 
 def count_truncated(lengths: Sequence[int], max_length: int) -> dict:
+    """How many texts are longer than max_length, their share, and how many subwords would be cut in total."""
     over = [n for n in lengths if n > max_length]
     return {"tweets": len(over), "share": round(len(over) / max(len(lengths), 1), 5),
             "subwords_cut": int(sum(n - max_length for n in over))}
@@ -226,7 +233,9 @@ def make_collate(tokenizer):
     import torch
 
     def collate(items):
+        # take the labels out before padding the token fields, then add them back as one tensor
         labels = [it.pop("labels") for it in items] if "labels" in items[0] else None
+        # pad to the longest tweet in THIS batch; the attention mask marks padding with 0 so the model ignores it
         batch = tokenizer.pad(items, padding="longest", return_tensors="pt")
         if labels is not None:
             batch["labels"] = torch.tensor(labels, dtype=torch.long)
@@ -248,11 +257,13 @@ def predict_ids(model, loader, device, fp16: bool = False) -> List[int]:
             batch = {k: v.to(device) for k, v in batch.items() if k != "labels"}
             with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=use_amp):
                 logits = model(**batch).logits
+            # the predicted class is the one with the highest score (no softmax needed for that)
             preds.extend(logits.argmax(dim=-1).tolist())
     return preds
 
 
 def ids_to_labels(ids: Sequence[int]) -> List[str]:
+    """Class ids (0, 1, 2) -> label names ("negative", "neutral", "positive")."""
     return [ID2LABEL[int(i)] for i in ids]
 
 

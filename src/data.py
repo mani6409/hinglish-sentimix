@@ -57,6 +57,11 @@ def parse_conll(path):
 
 
 def to_frame(tweets):
+    """Turn the list of tweet dicts from `parse_conll` into a DataFrame.
+
+    Adds `text` (the tokens joined with single spaces, which is what every model reads)
+    and `n_tokens`. The token and language-tag lists are kept for the CMI analysis.
+    """
     df = pd.DataFrame(tweets)
     df["text"] = df["tokens"].apply(lambda t: " ".join(t))
     df["n_tokens"] = df["tokens"].apply(len)

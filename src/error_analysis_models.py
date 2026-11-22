@@ -95,6 +95,7 @@ def setting_name(file_stem):
 
 
 def seed_of(file_stem):
+    """The seed number in a file name such as "..._seed43_dev" (0 if the name has none)."""
     m = re.search(r"seed(\d+)", file_stem)
     return int(m.group(1)) if m else 0
 
@@ -232,6 +233,7 @@ def build_error_table(dev, settings, cmi_table, edges):
 
 # ---- summaries -------------------------------------------------------------------------------------------
 def model_summary(settings, file_scores):
+    """Per setting: scores, number of errors, errors involving neutral, and the most common (true -> predicted) pairs."""
     rows = []
     for name, df in settings.items():
         m = compute_metrics(df["label"], df["pred"])
@@ -305,6 +307,8 @@ def agreement_table(wrong):
 
 
 def wilson(k, n, z=1.96):
+    """95% Wilson score interval for a rate of k out of n. Unlike the simple p ± 1.96·se formula,
+    it stays inside [0, 1] and behaves well for small n or rates near 0 or 1. Returns (nan, nan) for n = 0."""
     if n == 0:
         return (np.nan, np.nan)
     p = k / n
@@ -315,6 +319,7 @@ def wilson(k, n, z=1.96):
 
 
 def cmi_error_rates(settings, cmi_table, edges):
+    """Error rate of every setting in each CMI bucket (low / medium / high), with a Wilson interval."""
     bucket = pd.Series(assign_bucket(cmi_table["cmi"], edges).astype(str).to_numpy(), index=cmi_table["uid"].to_numpy())
     rows = []
     for name, df in settings.items():

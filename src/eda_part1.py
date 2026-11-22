@@ -26,6 +26,7 @@ NEAR_MONO = 0.90  # a tweet is "near-monolingual" if one language has >= 90% of 
 
 
 def norm_text(s):
+    """Lowercase and collapse spaces, so near-identical tweets compare equal in the duplicate checks."""
     return " ".join(s.lower().split())
 
 

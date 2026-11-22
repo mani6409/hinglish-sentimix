@@ -60,6 +60,7 @@ _LABEL_RE = re.compile(r"\b(positive|negative|neutral)\b")
 
 
 def build_prompt(tweet, version="v2"):
+    """The full prompt text for one tweet. Raises ValueError for an unknown prompt version."""
     if version not in PROMPTS:
         raise ValueError(f"unknown prompt version {version!r}; choose from {sorted(PROMPTS)}")
     return PROMPTS[version].format(tweet=str(tweet).strip())
@@ -112,12 +113,14 @@ def make_hf_backend(model_name, max_new_tokens=8):
     revision = getattr(model.config, "_commit_hash", None)
 
     def backend(prompt):
+        # wrap the prompt in the model's own chat format, as an instruction-tuned model expects
         messages = [{"role": "user", "content": prompt}]
         text = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = tok(text, return_tensors="pt")
         with torch.no_grad():
             out = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False,
                                  pad_token_id=tok.eos_token_id)
+        # `generate` returns prompt + answer; keep only the newly generated tokens
         return tok.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
 
     backend.model_revision = revision
@@ -156,6 +159,7 @@ def sample_dev(dev, n, seed=DEFAULT_SEED):
 
 
 def read_done(raw_path):
+    """Answers saved by earlier (possibly interrupted) runs; an empty table if there are none yet."""
     if raw_path.exists():
         return pd.read_csv(raw_path, keep_default_na=False)
     return pd.DataFrame(columns=["uid", "raw_response", "parsed", "valid", "reason", "latency_s", "prompt_version"])
@@ -210,6 +214,7 @@ def baseline_scores_on(uids, root=ROOT):
 
 
 def write_outputs(subset, raw, meta_extra, suffix=""):
+    """Score the answers, write the uid,label,pred file and the run-metadata JSON. Returns the metadata dict."""
     metrics, merged = evaluate(subset, raw)
     preds = merged[["uid", "label", "parsed"]].rename(columns={"parsed": "pred"})
     preds.to_csv(RESULTS / f"zero_shot_dev_predictions{suffix}.csv", index=False)
