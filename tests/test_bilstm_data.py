@@ -1,7 +1,7 @@
 """Tests for vocabularies, encoding, padding and truncation (no model, no training)."""
 import pytest
 
-from src.bilstm_data import (
+from src.bilstm import (
     LABEL2ID,
     PAD_ID,
     PLACEHOLDER_WORDS,

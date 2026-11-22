@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.evaluate_bilstm_test import SCALARS
+from src.eval_protocol_utils import SCALARS
 from src.final_comparison import build
 from src.metrics import LABELS, compute_metrics
 

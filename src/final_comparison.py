@@ -3,7 +3,7 @@
     python -m src.final_comparison          # writes results/final_model_comparison.csv
 
 One row per system and split. Dev metrics are recomputed from the saved dev prediction files with the same metric code as the
-test evaluations (src.evaluate_bilstm_test.full_metrics, cross-checked against src.metrics); test metrics are read from the
+test evaluations (src.eval_protocol_utils.full_metrics, cross-checked against src.metrics); test metrics are read from the
 frozen-evaluation outputs (results/bilstm_final_test, results/transformer_final_test). Nothing is trained or evaluated here, and
 the test split is never read: a system without a finished test evaluation gets a row whose status says so.
 """
@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.evaluate_bilstm_test import SCALARS, full_metrics
+from src.eval_protocol_utils import SCALARS, full_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_NAME = "final_model_comparison.csv"
@@ -63,7 +63,7 @@ def build_rows(results: Path) -> list:
                 add(f"TF-IDF {name} + logistic regression", "baseline", name, "dev", "done", _from_prediction_files([f]),
                     f"predictions/{f.name}", "C chosen on dev; single run")
         add("TF-IDF + logistic regression", "baseline", "all", "test", "not run", None, "",
-            "not evaluated on test (see reports/report_open_items.md)")
+            "not evaluated on test")
 
     # ---- BiLSTM (dev: 3 seeds per mode; test: frozen evaluation)
     bl_test = results / "bilstm_final_test" / "metrics_summary.json"
@@ -101,9 +101,32 @@ def build_rows(results: Path) -> list:
                 add(label, "transformer", f"clean, lr {lr:g}", "test", "pending", None, "",
                     "protocol frozen (docs/transformer_final_evaluation_protocol.md); run after team approval")
 
-    # ---- systems without results yet
-    add("MuRIL / IndicBERT", "transformer", "", "dev", "pending", None, "", "issue #7")
-    add("Zero-shot LLM", "LLM", "", "dev", "pending", None, "", "issue #8")
+    # ---- Indic transformers (issue #7; separate training loop src/indian_transformer.py, raw text, 3 epochs, lr 2e-5)
+    indic = [("MuRIL (google/muril-base-cased)", "muril", [results / "muril_dev_predictions.csv",
+                                                         *sorted(pred.glob("muril_s*_seed*_dev.csv"))]),
+             ("IndicBERT v2 (ai4bharat/IndicBERTv2-MLM-only)", "indicbert", [results / "indicbert_dev_predictions.csv"])]
+    for label, key, files in indic:
+        files = [f for f in files if f.exists()]
+        if not files:
+            add(label, "transformer", "", "dev", "pending", None, "", "issue #7")
+            continue
+        add(label, "transformer", "raw, lr 2e-05", "dev", "done", _from_prediction_files(files),
+            ", ".join(f.relative_to(results).as_posix() for f in files),
+            f"issue #7; src/indian_transformer.py (raw text, 3 epochs, not the shared pipeline); {len(files)} seed(s); best epoch on dev")
+        add(label, "transformer", "raw, lr 2e-05", "test", "not run", None, "", "no frozen test evaluation for this model")
+
+    # ---- zero-shot LLM (issue #8): a 200-tweet dev subset, so NOT comparable with the full-dev rows
+    zs, meta = results / "zero_shot_dev_predictions.csv", results / "zero_shot_run_meta.json"
+    if zs.exists():
+        mt = json.loads(meta.read_text(encoding="utf-8")) if meta.exists() else {}
+        n = len(pd.read_csv(zs))
+        add(f"Zero-shot LLM ({mt.get('model', '?')})", "LLM", f"prompt {mt.get('prompt_version', '?')}", f"dev subset ({n} tweets)", "done",
+            _from_prediction_files([zs]), zs.name,
+            f"issue #8; {mt.get('subset', 'dev subset')}; scores are not comparable with full-dev rows; "
+            f"invalid answers {mt.get('metrics', {}).get('n_invalid', '?')} (mapped to neutral)")
+    else:
+        add("Zero-shot LLM", "LLM", "", "dev", "pending", None, "", "issue #8")
+    add("Zero-shot LLM", "LLM", "", "test", "not run", None, "", "")
     return rows
 
 

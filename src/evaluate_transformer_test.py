@@ -6,7 +6,8 @@ READ docs/transformer_final_evaluation_protocol.md FIRST. This script is meant t
     python -m src.evaluate_transformer_test --validate-only          # checks only: no test file is opened, nothing is written
     python -m src.evaluate_transformer_test --confirm-final-test     # the real, one-time evaluation
 
-It follows the BiLSTM protocol (src/evaluate_bilstm_test.py, whose helpers it reuses):
+It follows the BiLSTM protocol (docs/bilstm_final_evaluation_protocol.md) and uses the same helpers, now in
+src/eval_protocol_utils.py:
 - Every file of the six frozen checkpoint folders, and the six frozen DEV prediction files, are MD5-verified before anything runs;
   each checkpoint's run_info.json must describe the run the manifest names (model, seed, lr, mode, epochs, max_length, ...).
 - Dev reproduction (both modes): every checkpoint predicts the DEV split again and must reproduce its frozen dev predictions
@@ -40,7 +41,7 @@ import numpy as np
 import pandas as pd
 
 from src.data import DEFAULT_ROOT
-from src.evaluate_bilstm_test import (
+from src.eval_protocol_utils import (
     CLASS_KEYS,
     PRIMARY,
     SCALARS,

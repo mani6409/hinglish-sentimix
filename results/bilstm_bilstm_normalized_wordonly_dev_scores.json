@@ -1,0 +1,566 @@
+{
+  "run_name": "bilstm_normalized_wordonly",
+  "config": {
+    "mode": "normalized",
+    "use_word": true,
+    "use_char": false,
+    "word_dim": 100,
+    "char_dim": 32,
+    "char_filters": 32,
+    "char_kernels": [
+      2,
+      3,
+      4
+    ],
+    "hidden_size": 128,
+    "num_layers": 1,
+    "dropout": 0.4,
+    "pooling": "maxmean",
+    "word_min_freq": 2,
+    "char_min_freq": 2,
+    "lowercase_words": true,
+    "lowercase_chars": false,
+    "max_words": null,
+    "max_chars": null,
+    "chars_percentile": 99.9,
+    "batch_size": 64,
+    "epochs": 20,
+    "lr": 0.001,
+    "weight_decay": 1e-05,
+    "grad_clip": 5.0,
+    "patience": 4,
+    "device": "auto"
+  },
+  "limits": {
+    "max_words": 56,
+    "max_chars": 18,
+    "source": "max over raw/clean/normalized of train-derived limits",
+    "per_mode": {
+      "raw": {
+        "max_words": 56,
+        "max_chars": 16
+      },
+      "clean": {
+        "max_words": 53,
+        "max_chars": 18
+      },
+      "normalized": {
+        "max_words": 53,
+        "max_chars": 17
+      }
+    }
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6069,
+      "std": 0.0037
+    },
+    "macro_f1": {
+      "mean": 0.6108,
+      "std": 0.0052
+    },
+    "accuracy": {
+      "mean": 0.6069,
+      "std": 0.0057
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "best_epoch": 7,
+      "epochs_run": 11,
+      "metrics": {
+        "weighted_f1": 0.6100729119026199,
+        "macro_f1": 0.6149836100543288,
+        "accuracy": 0.612,
+        "per_class": {
+          "negative": {
+            "precision": 0.6258134490238612,
+            "recall": 0.648314606741573,
+            "f1": 0.6368653421633554,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5493767976989453,
+            "recall": 0.5079787234042553,
+            "f1": 0.5278673422385998,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6628019323671498,
+            "recall": 0.6985743380855397,
+            "f1": 0.6802181457610312,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          577,
+          244,
+          69
+        ],
+        [
+          275,
+          573,
+          280
+        ],
+        [
+          70,
+          226,
+          686
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 1.0071,
+          "dev_weighted_f1": 0.5066,
+          "dev_macro_f1": 0.5171,
+          "dev_accuracy": 0.525
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.9173,
+          "dev_weighted_f1": 0.5645,
+          "dev_macro_f1": 0.5692,
+          "dev_accuracy": 0.565
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.8673,
+          "dev_weighted_f1": 0.5739,
+          "dev_macro_f1": 0.5803,
+          "dev_accuracy": 0.5773
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.8301,
+          "dev_weighted_f1": 0.5862,
+          "dev_macro_f1": 0.5909,
+          "dev_accuracy": 0.5853
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.8047,
+          "dev_weighted_f1": 0.5947,
+          "dev_macro_f1": 0.5966,
+          "dev_accuracy": 0.592
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.7675,
+          "dev_weighted_f1": 0.6073,
+          "dev_macro_f1": 0.6116,
+          "dev_accuracy": 0.6073
+        },
+        {
+          "epoch": 7,
+          "train_loss": 0.7338,
+          "dev_weighted_f1": 0.6101,
+          "dev_macro_f1": 0.615,
+          "dev_accuracy": 0.612
+        },
+        {
+          "epoch": 8,
+          "train_loss": 0.6958,
+          "dev_weighted_f1": 0.5981,
+          "dev_macro_f1": 0.6008,
+          "dev_accuracy": 0.5953
+        },
+        {
+          "epoch": 9,
+          "train_loss": 0.6687,
+          "dev_weighted_f1": 0.6077,
+          "dev_macro_f1": 0.6113,
+          "dev_accuracy": 0.606
+        },
+        {
+          "epoch": 10,
+          "train_loss": 0.631,
+          "dev_weighted_f1": 0.599,
+          "dev_macro_f1": 0.6049,
+          "dev_accuracy": 0.602
+        },
+        {
+          "epoch": 11,
+          "train_loss": 0.5947,
+          "dev_weighted_f1": 0.6035,
+          "dev_macro_f1": 0.6072,
+          "dev_accuracy": 0.6013
+        }
+      ],
+      "n_params": 1528459,
+      "word_vocab_size": 12914,
+      "char_vocab_size": 579,
+      "max_words": 56,
+      "max_chars": 18,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "words": 214
+        },
+        "dev": {
+          "tweets": 0,
+          "words": 40
+        }
+      },
+      "checkpoint": "C:\\Users\\ektas\\OneDrive\\Desktop\\DL\\hinglish-sentimix\\results\\checkpoints\\bilstm_bilstm_normalized_wordonly_seed42.pt",
+      "seconds": 1338.7
+    },
+    {
+      "seed": 43,
+      "best_epoch": 13,
+      "epochs_run": 17,
+      "metrics": {
+        "weighted_f1": 0.6028375605337917,
+        "macro_f1": 0.6050600881917316,
+        "accuracy": 0.6006666666666667,
+        "per_class": {
+          "negative": {
+            "precision": 0.6626984126984127,
+            "recall": 0.5629213483146067,
+            "f1": 0.6087484811664642,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5167535368577811,
+            "recall": 0.6152482269503546,
+            "f1": 0.5617159044921085,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6736958934517203,
+            "recall": 0.6181262729124236,
+            "f1": 0.6447158789166224,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          501,
+          331,
+          58
+        ],
+        [
+          198,
+          694,
+          236
+        ],
+        [
+          57,
+          318,
+          607
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 1.0029,
+          "dev_weighted_f1": 0.5344,
+          "dev_macro_f1": 0.5405,
+          "dev_accuracy": 0.536
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.9113,
+          "dev_weighted_f1": 0.5514,
+          "dev_macro_f1": 0.559,
+          "dev_accuracy": 0.559
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.8687,
+          "dev_weighted_f1": 0.5798,
+          "dev_macro_f1": 0.5836,
+          "dev_accuracy": 0.578
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.8348,
+          "dev_weighted_f1": 0.5873,
+          "dev_macro_f1": 0.5888,
+          "dev_accuracy": 0.5847
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.8033,
+          "dev_weighted_f1": 0.5949,
+          "dev_macro_f1": 0.5984,
+          "dev_accuracy": 0.5923
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.7704,
+          "dev_weighted_f1": 0.5956,
+          "dev_macro_f1": 0.5993,
+          "dev_accuracy": 0.5957
+        },
+        {
+          "epoch": 7,
+          "train_loss": 0.7416,
+          "dev_weighted_f1": 0.6018,
+          "dev_macro_f1": 0.6055,
+          "dev_accuracy": 0.6
+        },
+        {
+          "epoch": 8,
+          "train_loss": 0.7104,
+          "dev_weighted_f1": 0.6021,
+          "dev_macro_f1": 0.604,
+          "dev_accuracy": 0.6
+        },
+        {
+          "epoch": 9,
+          "train_loss": 0.6732,
+          "dev_weighted_f1": 0.6008,
+          "dev_macro_f1": 0.6029,
+          "dev_accuracy": 0.599
+        },
+        {
+          "epoch": 10,
+          "train_loss": 0.6425,
+          "dev_weighted_f1": 0.6026,
+          "dev_macro_f1": 0.6071,
+          "dev_accuracy": 0.602
+        },
+        {
+          "epoch": 11,
+          "train_loss": 0.6009,
+          "dev_weighted_f1": 0.5944,
+          "dev_macro_f1": 0.6009,
+          "dev_accuracy": 0.5993
+        },
+        {
+          "epoch": 12,
+          "train_loss": 0.5642,
+          "dev_weighted_f1": 0.5956,
+          "dev_macro_f1": 0.5988,
+          "dev_accuracy": 0.5937
+        },
+        {
+          "epoch": 13,
+          "train_loss": 0.5312,
+          "dev_weighted_f1": 0.6028,
+          "dev_macro_f1": 0.6051,
+          "dev_accuracy": 0.6007
+        },
+        {
+          "epoch": 14,
+          "train_loss": 0.4864,
+          "dev_weighted_f1": 0.5957,
+          "dev_macro_f1": 0.5992,
+          "dev_accuracy": 0.594
+        },
+        {
+          "epoch": 15,
+          "train_loss": 0.4453,
+          "dev_weighted_f1": 0.5871,
+          "dev_macro_f1": 0.5904,
+          "dev_accuracy": 0.585
+        },
+        {
+          "epoch": 16,
+          "train_loss": 0.4215,
+          "dev_weighted_f1": 0.5915,
+          "dev_macro_f1": 0.5938,
+          "dev_accuracy": 0.5893
+        },
+        {
+          "epoch": 17,
+          "train_loss": 0.3761,
+          "dev_weighted_f1": 0.5927,
+          "dev_macro_f1": 0.5958,
+          "dev_accuracy": 0.5907
+        }
+      ],
+      "n_params": 1528459,
+      "word_vocab_size": 12914,
+      "char_vocab_size": 579,
+      "max_words": 56,
+      "max_chars": 18,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "words": 214
+        },
+        "dev": {
+          "tweets": 0,
+          "words": 40
+        }
+      },
+      "checkpoint": "C:\\Users\\ektas\\OneDrive\\Desktop\\DL\\hinglish-sentimix\\results\\checkpoints\\bilstm_bilstm_normalized_wordonly_seed43.pt",
+      "seconds": 2065.5
+    },
+    {
+      "seed": 44,
+      "best_epoch": 10,
+      "epochs_run": 14,
+      "metrics": {
+        "weighted_f1": 0.607833893975183,
+        "macro_f1": 0.612435490161507,
+        "accuracy": 0.608,
+        "per_class": {
+          "negative": {
+            "precision": 0.6076923076923076,
+            "recall": 0.7101123595505618,
+            "f1": 0.6549222797927461,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5406113537117904,
+            "recall": 0.5487588652482269,
+            "f1": 0.5446546414430269,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.7030674846625767,
+            "recall": 0.5835030549898167,
+            "f1": 0.6377295492487479,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          632,
+          220,
+          38
+        ],
+        [
+          305,
+          619,
+          204
+        ],
+        [
+          103,
+          306,
+          573
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 1.0022,
+          "dev_weighted_f1": 0.5226,
+          "dev_macro_f1": 0.5305,
+          "dev_accuracy": 0.5307
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.9137,
+          "dev_weighted_f1": 0.5365,
+          "dev_macro_f1": 0.5457,
+          "dev_accuracy": 0.5487
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.8707,
+          "dev_weighted_f1": 0.571,
+          "dev_macro_f1": 0.5787,
+          "dev_accuracy": 0.5783
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.8328,
+          "dev_weighted_f1": 0.561,
+          "dev_macro_f1": 0.5703,
+          "dev_accuracy": 0.575
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.8046,
+          "dev_weighted_f1": 0.59,
+          "dev_macro_f1": 0.593,
+          "dev_accuracy": 0.5867
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.7712,
+          "dev_weighted_f1": 0.5759,
+          "dev_macro_f1": 0.5856,
+          "dev_accuracy": 0.592
+        },
+        {
+          "epoch": 7,
+          "train_loss": 0.7408,
+          "dev_weighted_f1": 0.6033,
+          "dev_macro_f1": 0.607,
+          "dev_accuracy": 0.603
+        },
+        {
+          "epoch": 8,
+          "train_loss": 0.7105,
+          "dev_weighted_f1": 0.6044,
+          "dev_macro_f1": 0.6083,
+          "dev_accuracy": 0.6027
+        },
+        {
+          "epoch": 9,
+          "train_loss": 0.6734,
+          "dev_weighted_f1": 0.6046,
+          "dev_macro_f1": 0.6099,
+          "dev_accuracy": 0.6063
+        },
+        {
+          "epoch": 10,
+          "train_loss": 0.6323,
+          "dev_weighted_f1": 0.6078,
+          "dev_macro_f1": 0.6124,
+          "dev_accuracy": 0.608
+        },
+        {
+          "epoch": 11,
+          "train_loss": 0.6054,
+          "dev_weighted_f1": 0.6003,
+          "dev_macro_f1": 0.6036,
+          "dev_accuracy": 0.5983
+        },
+        {
+          "epoch": 12,
+          "train_loss": 0.5572,
+          "dev_weighted_f1": 0.6004,
+          "dev_macro_f1": 0.6047,
+          "dev_accuracy": 0.5993
+        },
+        {
+          "epoch": 13,
+          "train_loss": 0.5216,
+          "dev_weighted_f1": 0.5965,
+          "dev_macro_f1": 0.6014,
+          "dev_accuracy": 0.5967
+        },
+        {
+          "epoch": 14,
+          "train_loss": 0.4769,
+          "dev_weighted_f1": 0.5951,
+          "dev_macro_f1": 0.5997,
+          "dev_accuracy": 0.5943
+        }
+      ],
+      "n_params": 1528459,
+      "word_vocab_size": 12914,
+      "char_vocab_size": 579,
+      "max_words": 56,
+      "max_chars": 18,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "words": 214
+        },
+        "dev": {
+          "tweets": 0,
+          "words": 40
+        }
+      },
+      "checkpoint": "C:\\Users\\ektas\\OneDrive\\Desktop\\DL\\hinglish-sentimix\\results\\checkpoints\\bilstm_bilstm_normalized_wordonly_seed44.pt",
+      "seconds": 996.1
+    }
+  ]
+}

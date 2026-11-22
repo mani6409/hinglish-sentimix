@@ -1,12 +1,12 @@
 # Transformer final test evaluation protocol
 
-**Status: frozen before the official test labels were read for any transformer purpose.** Four files define one single evaluation of six already-trained models:
+**Status: frozen before the official test labels were read for any transformer purpose.** Five files define one single evaluation of six already-trained models:
 - this document;
 - `configs/transformer_frozen_checkpoints.json`;
-- `src/evaluate_transformer_test.py`;
+- `src/evaluate_transformer_test.py` and its helpers in `src/eval_protocol_utils.py`;
 - `tests/test_evaluate_transformer_test.py`.
 
-Nothing in them may be changed after the test results are seen. The protocol follows the BiLSTM protocol (`docs/bilstm_final_evaluation_protocol.md`) and reuses its code for hashing, parsing, joining by uid and metrics.
+Nothing in them may be changed after the test results are seen. The protocol follows the BiLSTM protocol (`docs/bilstm_final_evaluation_protocol.md`) and uses the same code for hashing, parsing, joining by uid and metrics. That code now lives in `src/eval_protocol_utils.py`, copied unchanged from the BiLSTM evaluation script, which was later removed from the repository.
 
 ## 1. Purpose
 
@@ -24,6 +24,11 @@ There are six checkpoints: two models x seeds 42, 43 and 44.
 |---|---|---|---|---|---|
 | mBERT | `bert-base-multilingual-cased` | 2e-5 | 80 | 42, 43, 44 | `results/checkpoints/transformer_mbert_clean_ep6_lr2e-5_seed42`, `..._lr2e-5_final_seed43`, `..._lr2e-5_final_seed44` |
 | XLM-R | `xlm-roberta-base` | 1e-5 | 96 | 42, 43, 44 | `results/checkpoints/transformer_xlmr_clean_ep6_lr1e-5_seed42`, `..._lr1e-5_final_seed43`, `..._lr1e-5_final_seed44` |
+
+**The XLM-R learning rate is effectively a tie.**
+- **The scores.** On the single search seed (42), lr 1e-5 scored 0.6301 dev weighted F1 and 2e-5 scored 0.6300. The selection rule picked 1e-5 by a margin of 0.0001, which is noise (`results/transformer_lr_search_ep6.csv`).
+- **What the freeze means.** It makes this choice final, so the test results describe XLM-R at lr 1e-5 only. They say nothing about whether 2e-5 would be better or worse.
+- **mBERT is less close.** Its choice (2e-5, 0.6129) led 1e-5 (0.6088) by 0.004 on one seed.
 
 **What the manifest records.** `configs/transformer_frozen_checkpoints.json` lists, for each run:
 - the MD5 and size of **every file** in the checkpoint folder: `config.json`, `model.safetensors`, `run_info.json`, `tokenizer.json` and `tokenizer_config.json`;
@@ -146,6 +151,13 @@ It has been read for descriptive purposes before. The BiLSTM protocol, section 8
 - The BiLSTM test evaluation (`results/bilstm_final_test/`) was run and its results were published before this protocol was frozen. The BiLSTM test scores were known to the team. They did not influence any transformer setting, which had all been fixed on dev by then (issue #6).
 - `results/transformer_token_lengths.json` contains subword lengths of **train and dev** only.
 
+**Revision note (22 Nov 2026, PR #21 review, before any test run).** Three changes, none of which touches a checkpoint, a hash, an inference setting or a metric:
+- the helper code moved to `src/eval_protocol_utils.py`, because the BiLSTM evaluation script it came from was removed from `main`;
+- the XLM-R learning-rate tie is now stated in section 2;
+- a reference to a file not yet on `main` was removed from `src/final_comparison.py`.
+
+The dev reproduction check was run again after the change and still reproduced all six runs exactly.
+
 ## 10. Limitations
 
 - **Rough spread.** Three seeds per model, so the standard deviations are rough.
@@ -161,6 +173,7 @@ It has been read for descriptive purposes before. The BiLSTM protocol, section 8
 | `docs/transformer_final_evaluation_protocol.md` | this protocol |
 | `configs/transformer_frozen_checkpoints.json` | frozen checkpoint and dev-prediction hashes, models, inference settings, tolerances, official test-file hashes |
 | `src/evaluate_transformer_test.py` | the evaluation program |
+| `src/eval_protocol_utils.py` | shared helpers: hashing, atomic writes, strict parsing, join by uid, metrics |
 | `tests/test_evaluate_transformer_test.py` | tests with synthetic data only (never the official test files) |
 
 ## 12. Checklist before the run (to be ticked by a person)

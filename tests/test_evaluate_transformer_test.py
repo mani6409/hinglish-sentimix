@@ -5,6 +5,7 @@ Everything uses SYNTHETIC data: two copies of a tiny local BERT trained briefly 
 """
 import builtins
 import json
+import random
 import shutil
 from pathlib import Path
 
@@ -14,7 +15,7 @@ import pytest
 pytest.importorskip("torch")
 pytest.importorskip("transformers")
 
-from src.evaluate_bilstm_test import md5_file  # noqa: E402
+from src.eval_protocol_utils import md5_file  # noqa: E402
 from src.evaluate_transformer_test import (  # noqa: E402
     CHECKPOINT_FILES,
     MODELS,
@@ -34,11 +35,29 @@ from src.metrics import LABELS, compute_metrics  # noqa: E402
 from src.preprocess import load_processed_split  # noqa: E402
 from src.train_transformer import checkpoint_dir, prediction_path, run_experiment  # noqa: E402
 from src.transformer_utils import TransformerConfig  # noqa: E402
-from tests.synthetic_conll import make_data_root  # noqa: E402
-from tests.test_evaluate_bilstm_test import LAB_NAME, N_TEST, UNL_NAME, _write_synthetic_test_files  # noqa: E402
+from tests.synthetic_conll import FILLER, KEYWORDS, make_data_root  # noqa: E402
 from tests.test_transformer_pipeline import tiny_model  # noqa: E402,F401  (fixture)
 
 LRS = {"mbert": 1e-3, "xlmr": 3e-3}
+UNL_NAME, LAB_NAME = "Hinglish_test_unalbelled_conll_updated.txt", "Hinglish_test_labels.txt"
+N_TEST = 60
+
+
+def _write_synthetic_test_files(root: Path, n=N_TEST, seed=7):
+    """A synthetic unlabeled "test" file (CoNLL, no labels) and a separate Uid,Sentiment label file, as in the official data."""
+    rng = random.Random(seed)
+    lab, lines = ["Uid,Sentiment"], []
+    for i in range(n):
+        uid, label = 90000 + i, LABELS[i % 3]
+        toks = rng.sample(FILLER, 3) + rng.sample(KEYWORDS[label], 2) + rng.sample(FILLER, 2)
+        if i % 4 == 0:
+            toks = ["@", "user", "bohot", "acha"] + toks + ["https", "//", "t", ".", "co", "/", "abc123"]
+        lines.append(f"meta\t{uid}")  # NO label in the unlabeled file
+        lines += [f"{t}\tHin" for t in toks]
+        lines.append("")
+        lab.append(f"{uid},{label}")
+    (root / UNL_NAME).write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+    (root / LAB_NAME).write_bytes(("\r\n".join(lab) + "\r\n").encode("utf-8"))  # bytes: no newline translation on Windows
 
 
 def _write_manifest(base: Path, model_dirs: dict) -> None:
