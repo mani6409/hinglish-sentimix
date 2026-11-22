@@ -1,0 +1,89 @@
+{
+  "backend": "hf",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "model_revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "prompt_version": "v2",
+  "prompt_template": "You are an expert annotator of social media text. The tweet below is written in Hinglish: Hindi and English mixed in one message, with Hindi words usually typed in Roman letters (for example 'nahi' = no, 'bakwas' = nonsense, 'accha' = good) and with inconsistent spelling. User names are written as @ name and links may be cut off.\nDecide the overall sentiment the author expresses: positive, negative or neutral (neutral = no clear positive or negative opinion, for example news, questions or plain statements).\nAnswer with exactly one word: positive, negative or neutral. Do not explain.\n\nTweet: {tweet}\nAnswer:",
+  "decoding": "greedy (HF) / temperature 0 (API)",
+  "subset": "random 200 dev tweets, seed 42",
+  "api_token_usage": null,
+  "wall_time_this_session_s": 719.6,
+  "fallback_label_for_invalid": "neutral",
+  "date_run": "2026-11-21",
+  "metrics": {
+    "n_evaluated": 200,
+    "n_invalid": 0,
+    "invalid_rate": 0.0,
+    "invalid_reasons": {},
+    "all_answers": {
+      "weighted_f1": 0.47684074335450477,
+      "macro_f1": 0.45150160746491014,
+      "accuracy": 0.495,
+      "per_class": {
+        "negative": {
+          "precision": 0.35714285714285715,
+          "recall": 0.2,
+          "f1": 0.2564102564102564,
+          "support": 50
+        },
+        "neutral": {
+          "precision": 0.4552238805970149,
+          "recall": 0.7261904761904762,
+          "f1": 0.5596330275229358,
+          "support": 84
+        },
+        "positive": {
+          "precision": 0.7368421052631579,
+          "recall": 0.42424242424242425,
+          "f1": 0.5384615384615384,
+          "support": 66
+        }
+      }
+    },
+    "valid_answers_only": {
+      "weighted_f1": 0.47684074335450477,
+      "macro_f1": 0.45150160746491014,
+      "accuracy": 0.495,
+      "per_class": {
+        "negative": {
+          "precision": 0.35714285714285715,
+          "recall": 0.2,
+          "f1": 0.2564102564102564,
+          "support": 50
+        },
+        "neutral": {
+          "precision": 0.4552238805970149,
+          "recall": 0.7261904761904762,
+          "f1": 0.5596330275229358,
+          "support": 84
+        },
+        "positive": {
+          "precision": 0.7368421052631579,
+          "recall": 0.42424242424242425,
+          "f1": 0.5384615384615384,
+          "support": 66
+        }
+      }
+    },
+    "predicted_label_counts": {
+      "neutral": 134,
+      "positive": 38,
+      "negative": 28
+    },
+    "mean_latency_s": 3.595
+  },
+  "baselines_same_tweets_weighted_f1": {
+    "bilstm_full_clean_s42_seed42_dev": 0.6541,
+    "bilstm_full_clean_s43_seed43_dev": 0.6595,
+    "bilstm_full_clean_s44_seed44_dev": 0.6683,
+    "bilstm_full_normalized_s42_seed42_dev": 0.6365,
+    "bilstm_full_normalized_s43_seed43_dev": 0.6578,
+    "bilstm_full_normalized_s44_seed44_dev": 0.6494,
+    "bilstm_full_raw_s42_seed42_dev": 0.6501,
+    "bilstm_full_raw_s43_seed43_dev": 0.6251,
+    "bilstm_full_raw_s44_seed44_dev": 0.6406,
+    "tfidf_char_2-5_dev": 0.6745,
+    "tfidf_word_1-2_dev": 0.6654,
+    "tfidf_word_char_dev": 0.6453
+  }
+}

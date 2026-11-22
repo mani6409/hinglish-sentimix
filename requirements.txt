@@ -11,3 +11,4 @@ matplotlib
 seaborn
 jupyter
 tqdm
+sentencepiece  # tokenizer of some Indic models (IndicBERT)

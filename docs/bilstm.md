@@ -1,6 +1,6 @@
 # BiLSTM with word and character embeddings
 
-Code: `src/bilstm_data.py` (vocabularies, encoding, batching), `src/bilstm_model.py` (model), `src/train_bilstm.py` (training, evaluation, logging, command line). Default settings: `configs/bilstm_default.json`. Tests: `tests/test_bilstm_data.py`, `tests/test_bilstm_model.py`.
+Code: `src/bilstm.py` (vocabularies, encoding, batching, model, checkpoints), `src/train_bilstm.py` (training, evaluation, logging, command line). Default settings: `configs/bilstm_default.json`. Tests: `tests/test_bilstm_data.py`, `tests/test_bilstm_model.py`.
 
 **Status:** the code and tests are written and the tests pass on a small synthetic dataset. **No result on the real SentiMix data has been produced yet** (the dataset was not available when this was written), so there are no scores in this document and no claim about which text version is better.
 
@@ -123,12 +123,12 @@ Training uses Adam (lr 0.001), batch size 64, gradient clipping at 5, up to 20 e
 
 `<run>` is `bilstm_<mode>` unless `--run-name` is given, so the checkpoint for mode `normalized`, seed 42 is `results/checkpoints/bilstm_bilstm_normalized_seed42.pt`. Metrics (accuracy, macro F1, weighted F1, per class precision/recall) all come from `src/metrics.py`. Weighted F1 is the official SemEval score; macro F1 is reported next to it.
 
-### Checkpoints (`src/bilstm_checkpoint.py`)
+### Checkpoints (`src/bilstm.py`)
 
 A checkpoint holds the model weights, the word and character vocabularies, the length limits, every config setting (including the preprocessing `mode`), the seed, the best epoch, the dev metrics of that epoch, the preprocessing options, a fingerprint (SHA-256) of `configs/hinglish_variants.json`, train/dev sizes, truncation counts and library versions. It contains **no test tweets, test labels or test-derived numbers** (the training script never loads the test split; a test scans the file for any mention of the test split). It is loaded with `torch.load(weights_only=True)`, so it can contain only tensors and plain data and cannot run code.
 
 ```python
-from src.bilstm_checkpoint import load_checkpoint
+from src.bilstm import load_checkpoint
 
 ck = load_checkpoint("results/checkpoints/bilstm_bilstm_normalized_seed42.pt")
 ck.meta["dev_metrics"]["weighted_f1"]      # the score of the saved epoch on dev

@@ -1,0 +1,116 @@
+{
+  "class_proportions": {
+    "dev": [
+      0.2966666666666667,
+      0.376,
+      0.3273333333333333
+    ],
+    "test": [
+      0.3,
+      0.36666666666666664,
+      0.3333333333333333
+    ],
+    "train": [
+      0.293,
+      0.376,
+      0.331
+    ]
+  },
+  "predicted_proportions": {
+    "dev:raw": [
+      0.2788888888888889,
+      0.4103333333333334,
+      0.31077777777777776
+    ],
+    "dev:clean": [
+      0.3098888888888889,
+      0.35544444444444445,
+      0.33466666666666667
+    ],
+    "dev:normalized": [
+      0.2752222222222222,
+      0.4145555555555555,
+      0.31022222222222223
+    ],
+    "test:raw": [
+      0.2368888888888889,
+      0.46588888888888896,
+      0.2972222222222222
+    ],
+    "test:clean": [
+      0.2816666666666667,
+      0.39488888888888884,
+      0.3234444444444445
+    ],
+    "test:normalized": [
+      0.2513333333333333,
+      0.45122222222222225,
+      0.29744444444444446
+    ]
+  },
+  "test_f1_reweighted_to_dev_class_mix_mean_over_seeds": {
+    "raw": {
+      "macro_f1": 0.6617864957043565,
+      "weighted_f1": 0.660062660100922
+    },
+    "clean": {
+      "macro_f1": 0.6711201495184439,
+      "weighted_f1": 0.6668869286597651
+    },
+    "normalized": {
+      "macro_f1": 0.6589982145161835,
+      "weighted_f1": 0.6561432982518961
+    }
+  },
+  "length_stats": {
+    "dev": {
+      "tokens_mean": 26.226,
+      "tokens_median": 28.0,
+      "tokens_p90": 33.0,
+      "chars_mean": 127.688,
+      "chars_median": 142.0
+    },
+    "test": {
+      "tokens_mean": 26.121,
+      "tokens_median": 28.0,
+      "tokens_p90": 33.0,
+      "chars_mean": 129.90133333333333,
+      "chars_median": 144.0
+    }
+  },
+  "cmi_stats": {
+    "dev": {
+      "mean": 29.964525666666663,
+      "share_buckets": [
+        0.3393333333333333,
+        0.327,
+        0.33366666666666667
+      ]
+    },
+    "test": {
+      "mean": 29.708674,
+      "share_buckets": [
+        0.355,
+        0.31066666666666665,
+        0.3343333333333333
+      ]
+    }
+  },
+  "checks": {
+    "dev_uids_unique": true,
+    "test_uids_unique": true,
+    "dev_test_uid_overlap": 0,
+    "train_dev_uid_overlap": 0,
+    "train_test_uid_overlap": 0,
+    "test_label_uids_equal_test_uids": true,
+    "label_order": [
+      "negative",
+      "neutral",
+      "positive"
+    ],
+    "gold_labels_identical_across_nine_runs": true,
+    "max_abs_diff_saved_vs_recomputed_test": 0.0,
+    "max_abs_diff_saved_vs_recomputed_dev": 0.0,
+    "max_abs_diff_sklearn_macro_f1": 0.0
+  }
+}

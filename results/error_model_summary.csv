@@ -1,0 +1,7 @@
+setting,n_runs,n_tweets,n_errors,weighted_f1,macro_f1,accuracy,mean_single_run_weighted_f1,share_errors_involving_neutral,top_confusion,recall_negative,precision_negative,recall_neutral,precision_neutral,recall_positive,precision_positive
+bilstm_full_clean,3,3000,1135,0.6203,0.6258,0.6217,0.6118,0.897,neutral->positive (282),0.674,0.651,0.521,0.552,0.689,0.668
+bilstm_full_normalized,3,3000,1151,0.618,0.6212,0.6163,0.6071,0.902,negative->neutral (297),0.608,0.661,0.593,0.536,0.651,0.685
+bilstm_full_raw,3,3000,1158,0.6157,0.6198,0.614,0.6105,0.911,positive->neutral (291),0.626,0.668,0.576,0.53,0.647,0.676
+tfidf_char_2-5,1,3000,1163,0.6127,0.6164,0.6123,0.6127,0.878,negative->neutral (265),0.642,0.621,0.552,0.547,0.655,0.683
+tfidf_word_char,1,3000,1168,0.6121,0.6154,0.6107,0.6121,0.895,negative->neutral (292),0.619,0.633,0.572,0.534,0.648,0.69
+tfidf_word_1-2,1,3000,1164,0.6113,0.6161,0.612,0.6113,0.886,neutral->negative (279),0.666,0.622,0.524,0.545,0.664,0.678

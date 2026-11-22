@@ -34,8 +34,8 @@ def prediction_file(row):
         return ROOT / "results" / "predictions" / f"tfidf_{name}_dev.csv"
     run = re.search(r"run=(\w+)", notes)
     if model.startswith("bilstm") and run:
-        seed = re.search(r"s(\d+)$", run.group(1)).group(1)
-        return ROOT / "results" / "predictions" / f"bilstm_{run.group(1)}_seed{seed}_dev.csv"
+        # file pattern written by src/train_bilstm.py: bilstm_<run>_seed<seed>_dev.csv, with the seed column of the log
+        return ROOT / "results" / "predictions" / f"bilstm_{run.group(1)}_seed{int(row['seed'])}_dev.csv"
     raise ValueError(f"cannot find the prediction file for log row: {model!r}, {notes[:60]!r}")
 
 

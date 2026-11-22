@@ -1,0 +1,13 @@
+group,bucket,runs,weighted_f1_mean,weighted_f1_sd
+bilstm_full_clean,all,3,0.6118,0.0016
+bilstm_full_clean,low,3,0.6147,0.0079
+bilstm_full_clean,medium,3,0.6086,0.0087
+bilstm_full_clean,high,3,0.6108,0.0037
+bilstm_full_normalized,all,3,0.6071,0.0007
+bilstm_full_normalized,low,3,0.5971,0.0134
+bilstm_full_normalized,medium,3,0.6071,0.0066
+bilstm_full_normalized,high,3,0.6163,0.0082
+bilstm_full_raw,all,3,0.6105,0.0041
+bilstm_full_raw,low,3,0.6106,0.0084
+bilstm_full_raw,medium,3,0.6022,0.005
+bilstm_full_raw,high,3,0.6174,0.0081
