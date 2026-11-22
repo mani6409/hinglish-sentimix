@@ -1,0 +1,4 @@
+model,weighted_f1,macro_f1,accuracy
+tfidf_char_2-5,0.6127,0.6164,0.6123
+tfidf_word_1-2,0.6113,0.6161,0.612
+tfidf_word_char,0.6121,0.6154,0.6107
