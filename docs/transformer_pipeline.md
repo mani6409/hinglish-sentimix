@@ -38,6 +38,8 @@ python -m src.train_transformer --model xlmr  --seeds 42 43 44
 python -m src.train_transformer --model mbert --set lr=3e-5 --run-name mbert_clean_lr3e-5
 ```
 
+For the full learning-rate search with three seeds, use `src/run_transformer_experiments.py`. Then build the comparison with `src/transformer_comparison.py`. The protocol and results are in `docs/transformer_results.md` (issue #6).
+
 `--model` accepts the aliases `mbert` (`bert-base-multilingual-cased`), `xlmr` (`xlm-roberta-base`), `xlmr-large`, `muril` (`google/muril-base-cased`) and `indicbert` (`ai4bharat/indic-bert`). It also accepts any Hub id or local folder. Change any setting with `--set key=value` or a JSON file passed to `--config`.
 
 ## Outputs
@@ -72,7 +74,7 @@ These are the same conventions as the BiLSTM (`src/train_bilstm.py`). By default
 | `max_length` | `null` (derived) | The smallest multiple of 8 that is at least the longest train tweet in subwords, so no train tweet is truncated. It is derived from train only and per tokenizer. |
 | `batch_size` | 32 | Fits a 6 GB GPU with fp16 for base models. Use `grad_accum_steps` for larger effective batches. |
 | `lr` | 2e-5 | The usual range for base encoders is 1e-5 to 5e-5. Search this range on dev. |
-| `epochs` / `patience` | 4 / 2 | Base encoders usually peak within 2 to 4 epochs on about 14k examples. |
+| `epochs` / `patience` | 4 / 2 | Base encoders usually peak within 2 to 4 epochs on about 14k examples. In practice every 4-epoch run here peaked in its last epoch, so issue #6 used `epochs=6` (see `docs/transformer_results.md`). |
 | `warmup_ratio` | 0.1 | Linear warm-up, then linear decay (`get_linear_schedule_with_warmup`). |
 | `weight_decay` | 0.01 | AdamW. Bias and LayerNorm weights are excluded. |
 | `grad_clip` | 1.0 | |

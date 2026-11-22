@@ -1,0 +1,159 @@
+{
+  "run_name": "mbert_clean_ep6_lr3e-5",
+  "checkpoint": "bert-base-multilingual-cased",
+  "config": {
+    "model_name": "mbert",
+    "mode": "clean",
+    "max_length": null,
+    "length_percentile": 100.0,
+    "batch_size": 32,
+    "eval_batch_size": 128,
+    "epochs": 6,
+    "lr": 3e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "grad_clip": 1.0,
+    "grad_accum_steps": 1,
+    "patience": 2,
+    "dropout": null,
+    "device": "auto",
+    "fp16": true
+  },
+  "length": {
+    "max_length": 80,
+    "source": "train p100 subword length, rounded up to a multiple of 8",
+    "train_max": 79,
+    "model_limit": 512,
+    "train_truncated": {
+      "tweets": 0,
+      "share": 0.0,
+      "subwords_cut": 0
+    }
+  },
+  "seeds": [
+    42
+  ],
+  "summary": {
+    "weighted_f1": {
+      "mean": 0.6063,
+      "std": 0.0
+    },
+    "macro_f1": {
+      "mean": 0.6107,
+      "std": 0.0
+    },
+    "accuracy": {
+      "mean": 0.607,
+      "std": 0.0
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "best_epoch": 3,
+      "epochs_run": 5,
+      "metrics": {
+        "weighted_f1": 0.6063330021172355,
+        "macro_f1": 0.6107210733155004,
+        "accuracy": 0.607,
+        "per_class": {
+          "negative": {
+            "precision": 0.634703196347032,
+            "recall": 0.6247191011235955,
+            "f1": 0.6296715741789355,
+            "support": 890
+          },
+          "neutral": {
+            "precision": 0.5385312783318223,
+            "recall": 0.526595744680851,
+            "f1": 0.5324966382787988,
+            "support": 1128
+          },
+          "positive": {
+            "precision": 0.6571988246816847,
+            "recall": 0.6832993890020367,
+            "f1": 0.6699950074887668,
+            "support": 982
+          }
+        }
+      },
+      "confusion": [
+        [
+          556,
+          275,
+          59
+        ],
+        [
+          243,
+          594,
+          291
+        ],
+        [
+          77,
+          234,
+          671
+        ]
+      ],
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 0.9579,
+          "dev_weighted_f1": 0.5939,
+          "dev_macro_f1": 0.5989,
+          "dev_accuracy": 0.5953,
+          "lr_end": 2.7768385460693155e-05
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.804,
+          "dev_weighted_f1": 0.5848,
+          "dev_macro_f1": 0.5928,
+          "dev_accuracy": 0.5963,
+          "lr_end": 2.2214708368554523e-05
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.6649,
+          "dev_weighted_f1": 0.6063,
+          "dev_macro_f1": 0.6107,
+          "dev_accuracy": 0.607,
+          "lr_end": 1.666103127641589e-05
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.5052,
+          "dev_weighted_f1": 0.5908,
+          "dev_macro_f1": 0.5965,
+          "dev_accuracy": 0.594,
+          "lr_end": 1.1107354184277261e-05
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.3678,
+          "dev_weighted_f1": 0.6031,
+          "dev_macro_f1": 0.6057,
+          "dev_accuracy": 0.6013,
+          "lr_end": 5.553677092138631e-06
+        }
+      ],
+      "n_params": 177855747,
+      "max_length": 80,
+      "truncation": {
+        "train": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        },
+        "dev": {
+          "tweets": 0,
+          "share": 0.0,
+          "subwords_cut": 0
+        }
+      },
+      "device": "cuda",
+      "fp16": true,
+      "checkpoint": "C:\\Users\\Monis\\Codespace\\Github\\hinglish-sentimix\\results\\checkpoints\\transformer_mbert_clean_ep6_lr3e-5_seed42",
+      "seconds": 412.7
+    }
+  ]
+}

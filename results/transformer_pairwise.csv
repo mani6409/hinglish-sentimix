@@ -1,0 +1,5 @@
+comparison,basis,difference,ci_low,ci_high,interval_includes_zero
+mbert - xlmr,seed 42,-0.0172,,,
+mbert - xlmr,seed 43,-0.0143,,,
+mbert - xlmr,seed 44,-0.0196,,,
+mbert - xlmr,"paired bootstrap (1000), representative runs seed 43 vs seed 43",-0.0143,-0.0302,0.0025,True
