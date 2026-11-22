@@ -11,7 +11,7 @@
 - IndicBERT (one seed, development): `results/indicbert_dev_scores_seed42.json` and `results/indicbert_dev_predictions.csv` from pull request #26. **#26 must also be merged before the report is submitted.**
 - Zero-shot (200 development tweets): `docs/zero_shot_results.md` and `results/zero_shot_dev_predictions.csv` (on `main`).
 - Multi-model error analysis: `docs/error_analysis.md` and the `results/error_*.csv` files (on `main`).
-- Bootstrap intervals for spelling normalisation: `reports/bilstm_final_analysis.md` (on `main`).
+- Bootstrap intervals for spelling normalisation: `results/bilstm_test_analysis/bilstm_final_analysis.md` (on `main`).
 
 ## What the report says was NOT done (keep it that way unless it changes)
 - No test-set evaluation for TF-IDF, mBERT, XLM-R or the zero-shot model; only the BiLSTM has test results.
