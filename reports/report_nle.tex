@@ -189,9 +189,9 @@ may have been undertrained.
 \begin{table}
 \centering
 \caption{Development-set results (results/baseline\_scores.csv, results/experiment\_log.csv, results/bilstm\_test\_analysis/bilstm\_final\_analysis.md,
-results/transformer\_comparison.csv, results/indicbert\_dev\_scores\_seed42.json). BiLSTM and transformer dev scores are the best epoch per run and are optimistically selected.}
+results/transformer\_comparison.csv, results/indicbert\_dev\_scores\_seed42.json). BiLSTM and transformer dev scores are the best epoch per run and are optimistically selected. MuRIL and IndicBERT were trained for 3 epochs.}
 \label{tab:dev}
-\small\setlength{\tabcolsep}{4pt}
+\footnotesize\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrr}
 \hline\hline
 Model & Weighted F1 & Macro F1 & Accuracy \\
@@ -205,8 +205,8 @@ BiLSTM clean (3 seeds) & 0.612 $\pm$ 0.002 & 0.617 $\pm$ 0.002 & 0.613 $\pm$ 0.0
 BiLSTM normalized (3 seeds) & 0.607 $\pm$ 0.001 & 0.611 $\pm$ 0.000 & 0.606 $\pm$ 0.001 \\
 mBERT (3 seeds) & 0.610 $\pm$ 0.005 & 0.614 $\pm$ 0.005 & 0.610 $\pm$ 0.005 \\
 XLM-R (3 seeds) & 0.627 $\pm$ 0.003 & 0.632 $\pm$ 0.003 & 0.631 $\pm$ 0.004 \\
-MuRIL (3 seeds, raw text, 3 epochs) & 0.627 $\pm$ 0.005 & 0.632 $\pm$ 0.005 & 0.629 $\pm$ 0.006 \\
-IndicBERT (1 seed, raw text, 3 epochs) & 0.6305 & 0.6360 & 0.6347 \\
+MuRIL (3 seeds, raw text) & 0.627 $\pm$ 0.005 & 0.632 $\pm$ 0.005 & 0.629 $\pm$ 0.006 \\
+IndicBERT (1 seed, raw text) & 0.6305 & 0.6360 & 0.6347 \\
 \hline\hline
 \end{tabular}
 \end{table}
