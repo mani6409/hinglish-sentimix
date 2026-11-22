@@ -29,12 +29,11 @@ def parse_conll(path):
     """Parse one CoNLL file into a list of tweet dicts:
     {uid, label (or None), tokens, langs}. Raises ValueError on malformed lines
     so data problems are never silently ignored."""
-    tweets, cur = [], None  # cur = the tweet we are reading now
+    tweets, cur = [], None
     with open(path, encoding="utf-8") as f:
         for n, raw in enumerate(f, start=1):
             line = raw.rstrip("\n")
             if line.startswith("meta\t"):
-                # a header line means a new tweet, so save the previous one first
                 if cur is not None:
                     tweets.append(cur)
                 parts = line.split("\t")
@@ -49,7 +48,6 @@ def parse_conll(path):
                     raise ValueError(f"{path}:{n}: token before any header")
                 if "\t" not in line:
                     raise ValueError(f"{path}:{n}: token line without a tab {line!r}")
-                # the last tab separates the token from its language tag
                 token, lang = line.rsplit("\t", 1)
                 cur["tokens"].append(token)
                 cur["langs"].append(lang.strip())
@@ -59,7 +57,6 @@ def parse_conll(path):
 
 
 def to_frame(tweets):
-    """Turn the list of tweets into a DataFrame. `text` is the tokens joined with spaces."""
     df = pd.DataFrame(tweets)
     df["text"] = df["tokens"].apply(lambda t: " ".join(t))
     df["n_tokens"] = df["tokens"].apply(len)

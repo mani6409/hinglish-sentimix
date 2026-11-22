@@ -26,12 +26,6 @@ WHO = "Mani"
 DATA_VERSION = "raw (tokens joined by spaces)"
 C_GRID = [0.1, 1.0, 10.0]
 
-# Three ways to turn a tweet into numbers (TF-IDF):
-#   word_1-2   single words and pairs of words
-#   char_2-5   groups of 2 to 5 letters inside words
-#   word+char  both of the above together
-# min_df=2 ignores features that appear in only one tweet.
-# sublinear_tf=True uses 1+log(count), so a word repeated many times does not dominate.
 VECTORIZERS = {
     "word_1-2": lambda: [TfidfVectorizer(analyzer="word", ngram_range=(1, 2), min_df=2,
                                          sublinear_tf=True, lowercase=True, token_pattern=r"\S+")],
@@ -46,8 +40,6 @@ VECTORIZERS = {
 
 
 def fit_features(make, train_text, dev_text):
-    """Return the train and dev matrices. The vectorizers learn from the train text only.
-    Dev text is only converted, so nothing from dev leaks into training."""
     vecs = make()
     Xtr = hstack([v.fit_transform(train_text) for v in vecs]).tocsr()  # fit on train only
     Xdv = hstack([v.transform(dev_text) for v in vecs]).tocsr()
@@ -55,7 +47,6 @@ def fit_features(make, train_text, dev_text):
 
 
 def log_row(model, settings, dev_score, notes, lesson):
-    """Add one result row to results/experiment_log.csv."""
     path = ROOT / "results" / "experiment_log.csv"
     with open(path, "a", newline="", encoding="utf-8") as f:
         csv.writer(f).writerow([date.today().isoformat(), WHO, model, DATA_VERSION, settings,
@@ -63,10 +54,6 @@ def log_row(model, settings, dev_score, notes, lesson):
 
 
 def main():
-    """Train each TF-IDF + logistic regression model on train and score it on dev.
-
-    For each one we try three values of C (smaller C = simpler model) and keep the best on dev.
-    Only train and dev are loaded."""
     set_seed(DEFAULT_SEED)
     tr, dv = load_split("train"), load_split("dev")
     (ROOT / "results" / "predictions").mkdir(parents=True, exist_ok=True)
@@ -81,7 +68,7 @@ def main():
     for name, make in VECTORIZERS.items():
         Xtr, Xdv = fit_features(make, tr["text"], dv["text"])
         grid = {}
-        best = None  # (score, C, predictions, metrics) of the best C so far
+        best = None
         for C in C_GRID:
             t0 = time.time()
             clf = LogisticRegression(C=C, max_iter=3000, random_state=DEFAULT_SEED)
