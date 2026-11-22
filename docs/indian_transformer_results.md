@@ -50,7 +50,7 @@ The original `ai4bharat/indic-bert` (ALBERT) is **gated** on the Hugging Face Hu
 **Maximum sequence length:** 96 is the default (`--max-len`). It covers every training tweet for MuRIL (max 91) and 99%+ for IndicBERT v2 (p99 65, max 100: a few tweets are cut).
 
 ## Where the runs were done
-Fine-tuning a 237M-parameter BERT on 14,000 tweets for 3 epochs is a GPU job. The development PC has no NVIDIA GPU, so the runs were done on a free Kaggle notebook with a T4 x2 GPU and Internet on. The notebooks `notebooks/kaggle_indicbert.ipynb` and `notebooks/colab_muril_indicbert.ipynb` only call the repository scripts; no results are stored in them. On Kaggle, the notebook cloned this repository, ran the scripts, and pushed `results/` to a branch.
+Fine-tuning a 237M-parameter BERT on 14,000 tweets for 3 epochs is a GPU job. The development PC has no NVIDIA GPU, so the runs were done on a free Kaggle notebook with a T4 x2 GPU and Internet on. The notebook `notebooks/colab_muril_indicbert.ipynb` in the repository shows the same steps for Colab (clone the repository, run the scripts); no results are stored in it. On Kaggle, the notebooks used for the runs were not added to the repository: each one cloned this repository, ran `python -m src.train_muril` (seeds 42, 43, 44) or `python -m src.train_indicbert`, and pushed `results/` to a branch. Running the commands in "How to run" gives the same result files.
 
 ## How to run
 ```bash
