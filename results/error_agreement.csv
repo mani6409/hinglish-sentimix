@@ -1,0 +1,16 @@
+setting_a,setting_b,n_common_tweets,wrong_a,wrong_b,wrong_both,jaccard
+bilstm_full_clean,bilstm_full_normalized,3000,1135,1151,947,0.707
+bilstm_full_clean,bilstm_full_raw,3000,1135,1158,941,0.696
+bilstm_full_clean,tfidf_char_2-5,3000,1135,1163,873,0.613
+bilstm_full_clean,tfidf_word_1-2,3000,1135,1164,879,0.619
+bilstm_full_clean,tfidf_word_char,3000,1135,1168,854,0.589
+bilstm_full_normalized,bilstm_full_raw,3000,1151,1158,943,0.69
+bilstm_full_normalized,tfidf_char_2-5,3000,1151,1163,883,0.617
+bilstm_full_normalized,tfidf_word_1-2,3000,1151,1164,889,0.623
+bilstm_full_normalized,tfidf_word_char,3000,1151,1168,882,0.614
+bilstm_full_raw,tfidf_char_2-5,3000,1158,1163,889,0.621
+bilstm_full_raw,tfidf_word_1-2,3000,1158,1164,923,0.66
+bilstm_full_raw,tfidf_word_char,3000,1158,1168,891,0.621
+tfidf_char_2-5,tfidf_word_1-2,3000,1163,1164,930,0.666
+tfidf_char_2-5,tfidf_word_char,3000,1163,1168,1008,0.762
+tfidf_word_1-2,tfidf_word_char,3000,1164,1168,967,0.708
