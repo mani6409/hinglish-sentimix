@@ -11,7 +11,7 @@
 - MuRIL (three seeds) and IndicBERT (one seed), development: `results/muril_*` and `results/indicbert_*` files and `docs/indian_transformer_results.md` (on `main`).
 - Zero-shot (200 development tweets): `docs/zero_shot_results.md` and `results/zero_shot_dev_predictions.csv` (on `main`).
 - Multi-model error analysis (27 pooled settings) and CMI bucket results over 32 prediction files: `docs/error_analysis.md`, `results/error_*.csv`, `results/cmi_bucket_*.csv` (on `main`, regenerated in #29). Pooled counts include near-duplicate learning-rate search runs.
-- Bootstrap intervals for spelling normalisation: `reports/bilstm_final_analysis.md` (on `main`).
+- Bootstrap intervals for spelling normalisation: `results/bilstm_test_analysis/bilstm_final_analysis.md` (on `main`).
 
 ## What the report says was NOT done (keep it that way unless it changes)
 - No test-set evaluation for TF-IDF, mBERT, XLM-R or the zero-shot model; only the BiLSTM has test results.
