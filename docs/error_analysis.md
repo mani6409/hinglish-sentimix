@@ -109,6 +109,22 @@ Usernames are replaced by `@USER`. These were chosen at random (seed fixed) amon
 | Unflagged | 42802 | neutral → positive | 27 of 27 | "RT @USER Thanks to PM Shri @USER Ji and @USER president Shri @USER Ji for giving me opportunity to serve my count ..." | "Thanks" reads positive; the label neutral looks questionable. Wrong even for the zero-shot model. |
 | Unflagged | 23450 | negative → neutral | 25 of 27 | "@USER Modi ji Desh Ke corrupt officer on ko hatao ..." | Criticism without a strong sentiment word. |
 
+### 8. Category counts in the 60-error sample (draft labels, not verified by a person)
+`results/error_manual_sample.csv` holds 60 stratified errors of the best-scoring setting (MuRIL). Each row got one category from `MANUAL_CATEGORIES`. **These labels were suggested by a language model reading each tweet; no person has checked them yet** (the `notes` column says so). They are a first draft and must be reviewed before they are quoted as findings.
+
+| Category | Tweets | Share of 60 |
+|---|---|---|
+| Context-dependent (needs event, person or news) | 19 | 32% |
+| Annotation error candidate (gold label looks questionable) | 13 | 22% |
+| Slang / informal / abuse | 7 | 12% |
+| Sarcasm / irony | 7 | 12% |
+| Negation | 6 | 10% |
+| Transliteration / spelling | 4 | 7% |
+| Other (not Hinglish: Turkish, Indonesian, Punjabi) | 3 | 5% |
+| Code-mixing | 1 | 2% |
+
+Caveats: one label per tweet is forced although many tweets fit two categories; the sample is a stratified sample of MuRIL's errors, so the shares do not describe all errors; with 60 tweets and one unchecked rater the shares are rough (a few points either way mean nothing). The pattern is that many errors need outside context or have a label that looks doubtful, which agrees with the shared-error finding above. It does not replace a check by a human reader.
+
 ## Recurring weaknesses
 1. **Neutral boundary:** about 9 in 10 errors involve neutral; none of the 26 settings separates it well (neutral recall 0.48 to 0.62). The three best transformers do not fix this (neutral recall 0.49 to 0.53).
 2. **Negation** and **non-standard spelling** go with more errors; the models do not seem to handle polarity flips.
@@ -128,7 +144,7 @@ Usernames are replaced by `@USER`. These were chosen at random (seed fixed) amon
 - Dev set only; one split. Flags are heuristics (word lists), not human categories. The pooled chi-square tests are not independent, and the learning-rate-search runs inflate the pooled counts.
 - Seed-ensembles were analysed for MuRIL and the BiLSTM, single runs for IndicBERT, XLM-R, mBERT and TF-IDF.
 - The zero-shot predictions cover only 200 tweets, so its row is not comparable with the others.
-- **The hand-labelled category counts are not part of this report yet.** `results/error_manual_sample.csv` holds 60 stratified errors of the best-scoring setting (now MuRIL) with an empty `manual_category` column. It has to be filled by a person; only then can a hand-category table be reported. Nothing in this document is claimed from hand labels.
+- **The category labels of the 60-error sample are a draft from a language model, not hand labels.** Section 8 reports them as such. A person should read the 60 tweets, correct `manual_category` in `results/error_manual_sample.csv` and then replace the `notes` text; only then can the table be described as hand-labelled. Nothing else in this document depends on these labels.
 
 ## Files
 - Code: `src/error_analysis_models.py`; tests: `tests/test_error_analysis_models.py`.
