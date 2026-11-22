@@ -1,9 +1,10 @@
 % Report body for the Hinglish sentiment project (SemEval-2020 Task 9, Hinglish).
 % HOW TO USE: paste everything below into the body of the course's Overleaf template (between \begin{document}
 % and \end{document}), after the title, authors and \maketitle. Upload the PNG files named in \includegraphics
-% to Overleaf (they are in results/figures/ and in results/ of the repository). graphicx must be loaded.
-% Text in \textbf{[PENDING ...]} marks work that has no result yet; replace or delete it before submission.
-% Every number comes from a file in the repository; the source is named in a comment next to it.
+% to Overleaf (only results/figures/cmi_distribution.png is used). graphicx must be loaded.
+% The bibliography is an inline thebibliography environment: no .bib file or BibTeX run is needed. If the template
+% already ends with its own bibliography, keep only one of the two.
+% Every number comes from a file in the repository; the source is named in each table caption.
 
 \begin{abstract}
 We study sentiment classification of Hindi--English (Hinglish) code-mixed tweets on the SemEval-2020 Task~9 data
@@ -38,13 +39,28 @@ small language model, reported with its limits. (iv) An analysis by code-mixing 
 for the TF-IDF model and one by rules over all development prediction files. What was not done is listed in Section~\ref{sec:notdone}.
 
 \section{Related work}
-\textbf{Task and data.} SentiMix \cite{patwa2020} released code-mixed tweets labelled by sentiment and with
-per-word language tags. \textbf{Code-mixing measures.} The Code-Mixing Index of Gamb\"ack and Das \cite{gamback2014}
-measures how evenly languages are mixed in an utterance. \textbf{Pretrained multilingual models.} mBERT
-\cite{devlin2019} and XLM-R \cite{conneau2020} are multilingual encoders; MuRIL \cite{khanuja2021} and IndicBERT
-\cite{kakwani2020} are trained for Indian languages.
-\textbf{[PENDING: the team's paper summaries (docs/paper\_summary\_template.md) have not been filled in. Write 2--3
-paragraphs on SentiMix systems and on code-mixed sentiment work from them.]}
+\textbf{Code-mixed sentiment analysis.} Joshi et al.\ \cite{joshi2016} built an early Hindi--English code-mixed
+sentiment dataset and proposed an LSTM over sub-word units, arguing that word-level features break down under the spelling
+variation of Romanised Hindi. SemEval-2020 Task~9 (SentiMix) \cite{patwa2020} released larger Hinglish and Spanglish
+tweet sets labelled negative, neutral or positive, with a language tag for every word, and attracted 61 final submissions
+for Hinglish; the organisers report that BERT-like models and ensembles were the most common and the most successful
+approaches. The GLUECoS benchmark \cite{khanuja2020gluecos} includes Hindi--English sentiment analysis among its
+code-switched tasks and found that multilingual pretrained models outperform cross-lingual word embeddings.
+
+\textbf{Measuring code-mixing.} Gamb\"ack and Das \cite{gamback2014} proposed the Code-Mixing Index (CMI), which measures
+how evenly the languages of an utterance are mixed; we use it to group tweets by their level of mixing.
+
+\textbf{Multilingual Transformers.} mBERT \cite{devlin2019} and XLM-R \cite{conneau2020} are encoders pretrained on many
+languages at once; XLM-R uses more data (CommonCrawl text in 100 languages) and reports large gains over mBERT on
+cross-lingual benchmarks. Models trained for Indian languages include MuRIL \cite{khanuja2021}, whose pretraining data
+also contains transliterated text, IndicBERT \cite{kakwani2020}, an ALBERT model for 11 Indian languages, and its successor
+IndicBERT v2 \cite{doddapaneni2023}, trained on a larger corpus covering 24 Indic languages; we use IndicBERT v2.
+
+\textbf{Baselines.} Linear classifiers over word $n$-gram features are strong, simple baselines for sentiment
+classification \cite{wang2012}, which motivates our TF-IDF logistic-regression baseline. Combining a character-level CNN
+with word embeddings in a BiLSTM \cite{ma2016} gives words a representation built from their spelling, which suits the
+variable spellings of Romanised Hindi. For zero-shot prompting we use a small instruction-tuned model from the Qwen2.5
+family \cite{qwen2024}.
 
 \section{Dataset and analysis}
 \subsection{Data}
@@ -132,7 +148,7 @@ XLM-R). We tried learning rates $10^{-5}$, $2\times10^{-5}$ and $3\times10^{-5}$
 with 4 epochs had its best epoch in the last epoch for every run, so more epochs were allowed) and kept the best per model:
 $2\times10^{-5}$ for mBERT and $10^{-5}$ for XLM-R. For XLM-R, $10^{-5}$ and $2\times10^{-5}$ were tied (0.6301 against
 0.6300). The selected setting was then run with seeds 43 and 44; together with the search run (seed 42, slightly optimistic
-because it helped choose the learning rate) this gives three seeds. MuRIL (google/muril-base-cased; seeds 42, 43 and 44) and IndicBERT (IndicBERTv2, ai4bharat/IndicBERTv2-MLM-only; seed 42 only)
+because it helped choose the learning rate) this gives three seeds. MuRIL (google/muril-base-cased; seeds 42, 43 and 44) and IndicBERT (IndicBERT v2 \cite{doddapaneni2023}, ai4bharat/IndicBERTv2-MLM-only; seed 42 only)
 were fine-tuned on a GPU with identical, untuned settings: raw text, learning rate $2\times10^{-5}$, batch size 32, 3 epochs and
 maximum length 96, taking the best epoch on development weighted F1. In the runs we inspected (MuRIL seed 42 and IndicBERT) the
 best epoch was the last one (IndicBERT: 0.605, 0.625, 0.631), so they may have been undertrained. They were not tuned, and
@@ -326,20 +342,33 @@ general. Three seeds per configuration give rough standard deviations, and XLM-R
 margin of 0.0001. Our CMI values differ from the organisers' and every tweet is mixed, so the CMI groups are not monolingual
 versus mixed. The hand-checked categories were checked by one reader and have no agreement figure. The development-to-test gap, which appears for every evaluated model, is unexplained. The best SemEval system (0.750 weighted F1) is above our best test score (0.701).
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{patwa2020} Patwa, P., Aguilar, G., Kar, S., Pandey, S., PYKL, S., Gamb\"ack, B., Chakraborty, T., Solorio, T.,
 and Das, A. (2020). SemEval-2020 Task 9: Overview of Sentiment Analysis of Code-Mixed Tweets. In \emph{Proceedings of
-the 14th International Workshop on Semantic Evaluation (SemEval-2020)}. arXiv:2008.04277.
+the Fourteenth Workshop on Semantic Evaluation (SemEval-2020)}, pages 774--790.
 \bibitem{gamback2014} Gamb\"ack, B. and Das, A. (2014). On Measuring the Complexity of Code-Mixing. In
-\emph{Proceedings of the 11th International Conference on Natural Language Processing, Goa, India}.
+\emph{Proceedings of the 11th International Conference on Natural Language Processing (ICON)}, Goa, India, pages 1--7.
+\bibitem{joshi2016} Joshi, A., Prabhu, A., Shrivastava, M., and Varma, V. (2016). Towards Sub-Word Level Compositions for
+Sentiment Analysis of Hindi-English Code Mixed Text. In \emph{Proceedings of COLING 2016}, pages 2482--2491.
+\bibitem{khanuja2020gluecos} Khanuja, S., Dandapat, S., Srinivasan, A., Sitaram, S., and Choudhury, M. (2020). GLUECoS: An
+Evaluation Benchmark for Code-Switched NLP. In \emph{Proceedings of ACL 2020}, pages 3575--3585.
 \bibitem{devlin2019} Devlin, J., Chang, M.-W., Lee, K., and Toutanova, K. (2019). BERT: Pre-training of Deep Bidirectional
-Transformers for Language Understanding. In \emph{Proceedings of NAACL-HLT 2019}.
-\bibitem{conneau2020} Conneau, A., et al. (2020). Unsupervised Cross-lingual Representation Learning at Scale. In
-\emph{Proceedings of ACL 2020}. arXiv:1911.02116.
-\bibitem{khanuja2021} Khanuja, S., et al. (2021). MuRIL: Multilingual Representations for Indian Languages.
-arXiv:2103.10730.
-\bibitem{kakwani2020} Kakwani, D., et al. (2020). IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and
-Pre-trained Multilingual Language Models for Indian Languages. In \emph{Findings of EMNLP 2020}.
-% VERIFY every reference above (authors, venue, year, pages) against the papers before submission; they were written
-% from memory and not checked online.
+Transformers for Language Understanding. In \emph{Proceedings of NAACL-HLT 2019}, pages 4171--4186.
+\bibitem{conneau2020} Conneau, A., Khandelwal, K., Goyal, N., Chaudhary, V., Wenzek, G., Guzm\'an, F., Grave, E., Ott, M.,
+Zettlemoyer, L., and Stoyanov, V. (2020). Unsupervised Cross-lingual Representation Learning at Scale. In
+\emph{Proceedings of ACL 2020}, pages 8440--8451.
+\bibitem{khanuja2021} Khanuja, S., Bansal, D., Mehtani, S., Khosla, S., Dey, A., Gopalan, B., Margam, D. K., Aggarwal, P.,
+Nagipogu, R. T., Dave, S., Gupta, S., Gali, S. C. B., Subramanian, V., and Talukdar, P. (2021). MuRIL: Multilingual
+Representations for Indian Languages. arXiv:2103.10730.
+\bibitem{kakwani2020} Kakwani, D., Kunchukuttan, A., Golla, S., Gokul, N.C., Bhattacharyya, A., Khapra, M. M., and
+Kumar, P. (2020). IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models
+for Indian Languages. In \emph{Findings of EMNLP 2020}, pages 4948--4961.
+\bibitem{doddapaneni2023} Doddapaneni, S., Aralikatte, R., Ramesh, G., Goyal, S., Khapra, M. M., Kunchukuttan, A., and
+Kumar, P. (2023). Towards Leaving No Indic Language Behind: Building Monolingual Corpora, Benchmark and Models for Indic
+Languages. In \emph{Proceedings of ACL 2023}, pages 12402--12426.
+\bibitem{wang2012} Wang, S. and Manning, C. D. (2012). Baselines and Bigrams: Simple, Good Sentiment and Topic
+Classification. In \emph{Proceedings of ACL 2012 (Volume 2: Short Papers)}, pages 90--94.
+\bibitem{ma2016} Ma, X. and Hovy, E. (2016). End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. In
+\emph{Proceedings of ACL 2016}, pages 1064--1074.
+\bibitem{qwen2024} Qwen Team (2024). Qwen2.5 Technical Report. arXiv:2412.15115.
 \end{thebibliography}
