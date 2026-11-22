@@ -4,18 +4,18 @@
 
 ## Placeholders in the text (search for `PENDING`)
 1. Related work: 2 to 3 paragraphs from the team's paper summaries (`docs/paper_summary_template.md` is still empty).
-2. Error analysis, hand categories: raw agreement and Cohen's kappa from a second reader's labels of the same 60 tweets (`python -m src.label_agreement <file>`). If no second reader finishes, delete that sentence.
+(The second-reader item is closed: the second reader used a different label scheme, so the report says no agreement figure can be computed. If she relabels the 60 tweets with the 8 categories, run `python -m src.label_agreement <file>` and report agreement and kappa.)
 
 ## Where the new numbers come from
-- mBERT and XLM-R (development): `results/transformer_comparison.csv`, `results/transformer_pairwise.csv` and `docs/transformer_results.md` from pull request #20. **The report cites them, so #20 must be merged before the report is submitted.**
-- IndicBERT (one seed, development): `results/indicbert_dev_scores_seed42.json` and `results/indicbert_dev_predictions.csv` from pull request #26. **#26 must also be merged before the report is submitted.**
+- mBERT and XLM-R (development): `results/transformer_comparison.csv`, `results/transformer_pairwise.csv` and `docs/transformer_results.md` (on `main`).
+- MuRIL (three seeds) and IndicBERT (one seed), development: `results/muril_*` and `results/indicbert_*` files and `docs/indian_transformer_results.md` (on `main`).
 - Zero-shot (200 development tweets): `docs/zero_shot_results.md` and `results/zero_shot_dev_predictions.csv` (on `main`).
-- Multi-model error analysis: `docs/error_analysis.md` and the `results/error_*.csv` files (on `main`).
+- Multi-model error analysis (27 pooled settings) and CMI bucket results over 32 prediction files: `docs/error_analysis.md`, `results/error_*.csv`, `results/cmi_bucket_*.csv` (on `main`, regenerated in #29). Pooled counts include near-duplicate learning-rate search runs.
 - Bootstrap intervals for spelling normalisation: `reports/bilstm_final_analysis.md` (on `main`).
 
 ## What the report says was NOT done (keep it that way unless it changes)
 - No test-set evaluation for TF-IDF, mBERT, XLM-R or the zero-shot model; only the BiLSTM has test results.
-- MuRIL was not trained (code exists, a GPU is needed). IndicBERT was run once only (seed 42, untuned, still improving at its last epoch).
+- MuRIL and IndicBERT were run with untuned settings (3 epochs, best epoch was the last one in the runs inspected); IndicBERT was run once only (seed 42).
 - The zero-shot run uses a 0.5-billion-parameter model on 200 development tweets only.
 
 ## Checks before submission
