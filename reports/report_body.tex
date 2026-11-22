@@ -1,9 +1,11 @@
-% Report body for the Hinglish sentiment project (SemEval-2020 Task 9, Hinglish).
-% HOW TO USE: paste everything below into the body of the course's Overleaf template (between \begin{document}
-% and \end{document}), after the title, authors and \maketitle. Upload the PNG files named in \includegraphics
-% to Overleaf (they are in results/figures/ and in results/ of the repository). graphicx must be loaded.
-% Text in \textbf{[PENDING ...]} marks work that has no result yet; replace or delete it before submission.
-% Every number comes from a file in the repository; the source is named in a comment next to it.
+% Report body for the Hinglish sentiment project (SemEval-2020 Task 9, Hinglish), written for the Natural Language
+% Engineering (NLE) style described in "Submission_Template_for_Natural_Language_Engineering_Journal".
+% HOW TO USE: put this text between \maketitle and \end{document} of the course template (reports/main.tex shows a complete
+% example). Upload the PNG named in \includegraphics (results/figures/cmi_distribution.png) to the same folder.
+% Style rules applied here: table caption first, double rules above and below the table body, no vertical rules, decimals set with
+% \hpt, figure caption below the figure, no positional qualifiers on floats, author-date citations (\cite = Author (year) in
+% brackets, \shortcite = year only), hand-made thebibliography in the journal's format.
+% Every number comes from a file in the repository (see reports/report_open_items.md).
 
 \begin{abstract}
 We study sentiment classification of Hindi--English (Hinglish) code-mixed tweets on the SemEval-2020 Task~9 data
@@ -38,13 +40,19 @@ small language model, reported with its limits. (iv) An analysis by code-mixing 
 for the TF-IDF model and one by rules over all development prediction files. What was not done is listed in Section~\ref{sec:notdone}.
 
 \section{Related work}
-\textbf{Task and data.} SentiMix \cite{patwa2020} released code-mixed tweets labelled by sentiment and with
-per-word language tags. \textbf{Code-mixing measures.} The Code-Mixing Index of Gamb\"ack and Das \cite{gamback2014}
-measures how evenly languages are mixed in an utterance. \textbf{Pretrained multilingual models.} mBERT
-\cite{devlin2019} and XLM-R \cite{conneau2020} are multilingual encoders; MuRIL \cite{khanuja2021} and IndicBERT
-\cite{kakwani2020} are trained for Indian languages.
-\textbf{[PENDING: the team's paper summaries (docs/paper\_summary\_template.md) have not been filled in. Write 2--3
-paragraphs on SentiMix systems and on code-mixed sentiment work from them.]}
+\textbf{Task and data.} SentiMix \cite{patwa2020} released code-mixed tweets labelled by sentiment and with per-word language
+tags. Its Hinglish track has 14{,}000 training, 3{,}000 development and 3{,}000 test tweets; the best Hinglish system reached
+0.750 weighted F1 and annotators agreed on 55\% of the tweets \cite{patwa2020}.
+\textbf{Code-mixing measures.} The Code-Mixing Index of Gamb\"ack and Das \shortcite{gamback2014} measures how evenly the
+languages are mixed in an utterance; we use it to group tweets by the amount of mixing.
+\textbf{Pretrained multilingual models.} Pretrained transformer encoders such as BERT \shortcite{devlin2019} are a standard
+starting point for text classification. mBERT is a multilingual version of BERT, and XLM-R \shortcite{conneau2020} is a
+multilingual encoder pretrained on text in about 100 languages. MuRIL \shortcite{khanuja2021} and IndicBERT
+\shortcite{kakwani2020} are pretrained for Indian languages. Hinglish tweets are mostly Hindi written in Roman script, which
+can differ from the text these models were mainly pretrained on, which is one reason to compare Indian-language models with
+general multilingual ones. We did not carry out a systematic survey of the SentiMix systems; our comparison with them is limited
+to the best reported score.
+% CHECK before submission: the statements about pretraining data above are general knowledge, not taken from the repository.
 
 \section{Dataset and analysis}
 \subsection{Data}
@@ -58,18 +66,20 @@ Classes are close to balanced (Table~\ref{tab:labels}). A classifier that always
 accuracy but only 0.205 weighted F1 on development data, which is the floor. We report the official metric of the
 task, \textbf{weighted F1} \cite{patwa2020}, together with macro F1 and accuracy.
 
-\begin{table}[h]
-\centering
+\begin{table}
+\caption{Label distribution (docs/eda\_part1.md).}
+\begin{minipage}{\textwidth}
 \begin{tabular}{lrrrr}
-\hline
+\hline\hline
 Split & Tweets & Negative & Neutral & Positive \\
 \hline
-Train & 14{,}000 & 29.3\% & 37.6\% & 33.1\% \\
-Dev   & 3{,}000  & 29.7\% & 37.6\% & 32.7\% \\
-Test  & 3{,}000  & 30.0\% & 36.7\% & 33.3\% \\
-\hline
+Train & 14{,}000 & 29\hpt 3\% & 37\hpt 6\% & 33\hpt 1\% \\
+Dev   & 3{,}000  & 29\hpt 7\% & 37\hpt 6\% & 32\hpt 7\% \\
+Test  & 3{,}000  & 30\hpt 0\% & 36\hpt 7\% & 33\hpt 3\% \\
+\hline\hline
 \end{tabular}
-\caption{Label distribution (docs/eda\_part1.md).}
+\vspace{-2\baselineskip}
+\end{minipage}
 \label{tab:labels}
 \end{table}
 
@@ -88,7 +98,7 @@ formula consistently and compare tweets by rank only. Almost every tweet is mixe
 ``low'', ``medium'' and ``high'' groups, the training-set terciles with cut points 23.8 and 34.8, compare
 moderately mixed with heavily mixed text and not monolingual with mixed text (Figure~\ref{fig:cmi}).
 
-\begin{figure}[h]
+\begin{figure}
 \centering
 \includegraphics[width=0.7\linewidth]{cmi_distribution.png}
 \caption{Distribution of CMI on the training set (results/figures/cmi\_distribution.png).}
@@ -160,27 +170,29 @@ among them. MuRIL and IndicBERT are not directly comparable with mBERT and XLM-R
 learning rate (and IndicBERT one seed), and their scores were still rising at the last epoch in the runs we inspected, so they
 may have been undertrained.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lrrr}
-\hline
-Model & Weighted F1 & Macro F1 & Accuracy \\
-\hline
-Always ``neutral'' & 0.205 & 0.182 & 0.376 \\
-TF-IDF word 1--2 & 0.611 & 0.616 & 0.612 \\
-TF-IDF char 2--5 & 0.613 & 0.616 & 0.612 \\
-TF-IDF word + char & 0.612 & 0.615 & 0.611 \\
-BiLSTM raw (3 seeds) & 0.611 $\pm$ 0.004 & 0.614 $\pm$ 0.006 & 0.610 $\pm$ 0.005 \\
-BiLSTM clean (3 seeds) & 0.612 $\pm$ 0.002 & 0.617 $\pm$ 0.002 & 0.613 $\pm$ 0.003 \\
-BiLSTM normalized (3 seeds) & 0.607 $\pm$ 0.001 & 0.611 $\pm$ 0.000 & 0.606 $\pm$ 0.001 \\
-mBERT (3 seeds) & 0.610 $\pm$ 0.005 & 0.614 $\pm$ 0.005 & 0.610 $\pm$ 0.005 \\
-XLM-R (3 seeds) & 0.627 $\pm$ 0.003 & 0.632 $\pm$ 0.003 & 0.631 $\pm$ 0.004 \\
-MuRIL (3 seeds, raw text, 3 epochs) & 0.627 $\pm$ 0.005 & 0.632 $\pm$ 0.005 & 0.629 $\pm$ 0.006 \\
-IndicBERT (1 seed, raw text, 3 epochs) & 0.6305 & 0.6360 & 0.6347 \\
-\hline
-\end{tabular}
+\begin{table}
 \caption{Development-set results (results/baseline\_scores.csv, results/experiment\_log.csv, results/bilstm\_test\_analysis/bilstm\_final\_analysis.md,
 results/transformer\_comparison.csv, results/indicbert\_dev\_scores\_seed42.json). BiLSTM and transformer dev scores are the best epoch per run and are optimistically selected.}
+\begin{minipage}{\textwidth}
+\begin{tabular}{lrrr}
+\hline\hline
+Model & Weighted F1 & Macro F1 & Accuracy \\
+\hline
+Always ``neutral'' & 0\hpt 205 & 0\hpt 182 & 0\hpt 376 \\
+TF-IDF word 1--2 & 0\hpt 611 & 0\hpt 616 & 0\hpt 612 \\
+TF-IDF char 2--5 & 0\hpt 613 & 0\hpt 616 & 0\hpt 612 \\
+TF-IDF word + char & 0\hpt 612 & 0\hpt 615 & 0\hpt 611 \\
+BiLSTM raw (3 seeds) & 0\hpt 611 $\pm$ 0\hpt 004 & 0\hpt 614 $\pm$ 0\hpt 006 & 0\hpt 610 $\pm$ 0\hpt 005 \\
+BiLSTM clean (3 seeds) & 0\hpt 612 $\pm$ 0\hpt 002 & 0\hpt 617 $\pm$ 0\hpt 002 & 0\hpt 613 $\pm$ 0\hpt 003 \\
+BiLSTM normalized (3 seeds) & 0\hpt 607 $\pm$ 0\hpt 001 & 0\hpt 611 $\pm$ 0\hpt 000 & 0\hpt 606 $\pm$ 0\hpt 001 \\
+mBERT (3 seeds) & 0\hpt 610 $\pm$ 0\hpt 005 & 0\hpt 614 $\pm$ 0\hpt 005 & 0\hpt 610 $\pm$ 0\hpt 005 \\
+XLM-R (3 seeds) & 0\hpt 627 $\pm$ 0\hpt 003 & 0\hpt 632 $\pm$ 0\hpt 003 & 0\hpt 631 $\pm$ 0\hpt 004 \\
+MuRIL (3 seeds, raw text, 3 epochs) & 0\hpt 627 $\pm$ 0\hpt 005 & 0\hpt 632 $\pm$ 0\hpt 005 & 0\hpt 629 $\pm$ 0\hpt 006 \\
+IndicBERT (1 seed, raw text, 3 epochs) & 0\hpt 6305 & 0\hpt 6360 & 0\hpt 6347 \\
+\hline\hline
+\end{tabular}
+\vspace{-2\baselineskip}
+\end{minipage}
 \label{tab:dev}
 \end{table}
 
@@ -191,45 +203,49 @@ that describes Hinglish and defines neutral raises weighted F1 by 0.22 but it st
 model rarely says negative (recall 0.20). The subset is small, so differences of a few points should not be interpreted, and no
 interval was computed.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lr}
-\hline
-System (same 200 development tweets) & Weighted F1 \\
-\hline
-Zero-shot, prompt v2 (primary) & 0.4768 \\
-Zero-shot, prompt v1 & 0.2547 \\
-TF-IDF char 2--5 & 0.6745 \\
-TF-IDF word 1--2 & 0.6654 \\
-TF-IDF word + char & 0.6453 \\
-BiLSTM clean, seed 42 & 0.6541 \\
-BiLSTM normalized, seed 42 & 0.6365 \\
-BiLSTM raw, seed 42 & 0.6501 \\
-\hline
-\end{tabular}
+\begin{table}
 \caption{Zero-shot reference on a fixed random sample of 200 development tweets (docs/zero\_shot\_results.md). Accuracy of the
 primary prompt: 0.495.}
+\begin{minipage}{\textwidth}
+\begin{tabular}{lr}
+\hline\hline
+System (same 200 development tweets) & Weighted F1 \\
+\hline
+Zero-shot, prompt v2 (primary) & 0\hpt 4768 \\
+Zero-shot, prompt v1 & 0\hpt 2547 \\
+TF-IDF char 2--5 & 0\hpt 6745 \\
+TF-IDF word 1--2 & 0\hpt 6654 \\
+TF-IDF word + char & 0\hpt 6453 \\
+BiLSTM clean, seed 42 & 0\hpt 6541 \\
+BiLSTM normalized, seed 42 & 0\hpt 6365 \\
+BiLSTM raw, seed 42 & 0\hpt 6501 \\
+\hline\hline
+\end{tabular}
+\vspace{-2\baselineskip}
+\end{minipage}
 \label{tab:zs}
 \end{table}
 
 \subsection{Test set}
 Table~\ref{tab:test} gives the single frozen test evaluation of the nine BiLSTM runs and the six transformer runs. \textbf{TF-IDF, MuRIL, IndicBERT and the zero-shot model were not evaluated on the test set}, so there is no test comparison for them.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lrrr}
-\hline
-Model & Weighted F1 & Macro F1 & Accuracy \\
-\hline
-BiLSTM, raw text & 0.660 $\pm$ 0.007 & 0.662 $\pm$ 0.008 & 0.658 $\pm$ 0.005 \\
-BiLSTM, clean text & 0.668 $\pm$ 0.002 & 0.672 $\pm$ 0.003 & 0.667 $\pm$ 0.004 \\
-BiLSTM, normalized text & 0.657 $\pm$ 0.006 & 0.659 $\pm$ 0.006 & 0.653 $\pm$ 0.007 \\
-mBERT (lr $2\times10^{-5}$) & 0.687 $\pm$ 0.008 & 0.689 $\pm$ 0.008 & 0.685 $\pm$ 0.007 \\
-XLM-R (lr $10^{-5}$) & 0.701 $\pm$ 0.004 & 0.703 $\pm$ 0.004 & 0.700 $\pm$ 0.004 \\
-\hline
-\end{tabular}
+\begin{table}
 \caption{Test-set results, mean $\pm$ sample standard deviation over seeds 42--44 (results/bilstm\_final\_test/, results/transformer\_final\_test/). For reference,
 the best SemEval Hinglish system reached 0.750 weighted F1 \cite{patwa2020}.}
+\begin{minipage}{\textwidth}
+\begin{tabular}{lrrr}
+\hline\hline
+Model & Weighted F1 & Macro F1 & Accuracy \\
+\hline
+BiLSTM, raw text & 0\hpt 660 $\pm$ 0\hpt 007 & 0\hpt 662 $\pm$ 0\hpt 008 & 0\hpt 658 $\pm$ 0\hpt 005 \\
+BiLSTM, clean text & 0\hpt 668 $\pm$ 0\hpt 002 & 0\hpt 672 $\pm$ 0\hpt 003 & 0\hpt 667 $\pm$ 0\hpt 004 \\
+BiLSTM, normalized text & 0\hpt 657 $\pm$ 0\hpt 006 & 0\hpt 659 $\pm$ 0\hpt 006 & 0\hpt 653 $\pm$ 0\hpt 007 \\
+mBERT (lr $2\times10^{-5}$) & 0\hpt 687 $\pm$ 0\hpt 008 & 0\hpt 689 $\pm$ 0\hpt 008 & 0\hpt 685 $\pm$ 0\hpt 007 \\
+XLM-R (lr $10^{-5}$) & 0\hpt 701 $\pm$ 0\hpt 004 & 0\hpt 703 $\pm$ 0\hpt 004 & 0\hpt 700 $\pm$ 0\hpt 004 \\
+\hline\hline
+\end{tabular}
+\vspace{-2\baselineskip}
+\end{minipage}
 \label{tab:test}
 \end{table}
 
@@ -288,10 +304,11 @@ which is too many to all be mislabelled; it narrows the list for a human check a
 \subsection{Hand-checked categories}
 We took a random sample of 60 development errors of the TF-IDF model and assigned each one main category (Table~\ref{tab:cats}); one reader then went through all 60 tweets and kept every category unchanged. With 60 tweets each share is uncertain by about $\pm10$ points. A second reader labelled the same 60 tweets with a different scheme (13 tone labels, not these 8 categories), so no agreement figure can be computed.
 
-\begin{table}[h]
-\centering
+\begin{table}
+\caption{Hand-checked categories for 60 TF-IDF development errors (results/error\_categories\_manual.csv).}
+\begin{minipage}{\textwidth}
 \begin{tabular}{lrr}
-\hline
+\hline\hline
 Category & Tweets & Share \\
 \hline
 Label looks questionable & 14 & 23\% \\
@@ -302,9 +319,10 @@ Slang and informal language & 7 & 12\% \\
 Transliteration variants & 5 & 8\% \\
 Clear sentiment missed & 3 & 5\% \\
 Code-mixing (mixed script) & 1 & 2\% \\
-\hline
+\hline\hline
 \end{tabular}
-\caption{Hand-checked categories for 60 TF-IDF development errors (results/error\_categories\_manual.csv).}
+\vspace{-2\baselineskip}
+\end{minipage}
 \label{tab:cats}
 \end{table}
 
@@ -326,20 +344,30 @@ general. Three seeds per configuration give rough standard deviations, and XLM-R
 margin of 0.0001. Our CMI values differ from the organisers' and every tweet is mixed, so the CMI groups are not monolingual
 versus mixed. The hand-checked categories were checked by one reader and have no agreement figure. The development-to-test gap, which appears for every evaluated model, is unexplained. The best SemEval system (0.750 weighted F1) is above our best test score (0.701).
 
-\begin{thebibliography}{9}
-\bibitem{patwa2020} Patwa, P., Aguilar, G., Kar, S., Pandey, S., PYKL, S., Gamb\"ack, B., Chakraborty, T., Solorio, T.,
-and Das, A. (2020). SemEval-2020 Task 9: Overview of Sentiment Analysis of Code-Mixed Tweets. In \emph{Proceedings of
-the 14th International Workshop on Semantic Evaluation (SemEval-2020)}. arXiv:2008.04277.
-\bibitem{gamback2014} Gamb\"ack, B. and Das, A. (2014). On Measuring the Complexity of Code-Mixing. In
-\emph{Proceedings of the 11th International Conference on Natural Language Processing, Goa, India}.
-\bibitem{devlin2019} Devlin, J., Chang, M.-W., Lee, K., and Toutanova, K. (2019). BERT: Pre-training of Deep Bidirectional
-Transformers for Language Understanding. In \emph{Proceedings of NAACL-HLT 2019}.
-\bibitem{conneau2020} Conneau, A., et al. (2020). Unsupervised Cross-lingual Representation Learning at Scale. In
-\emph{Proceedings of ACL 2020}. arXiv:1911.02116.
-\bibitem{khanuja2021} Khanuja, S., et al. (2021). MuRIL: Multilingual Representations for Indian Languages.
-arXiv:2103.10730.
-\bibitem{kakwani2020} Kakwani, D., et al. (2020). IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and
-Pre-trained Multilingual Language Models for Indian Languages. In \emph{Findings of EMNLP 2020}.
-% VERIFY every reference above (authors, venue, year, pages) against the papers before submission; they were written
-% from memory and not checked online.
+\begin{thebibliography}{}
+\bibitem[\protect\citename{Conneau {\it et al.}\ }2020]{conneau2020}
+ Conneau, A., Khandelwal, K., Goyal, N., Chaudhary, V., Wenzek, G., Guzm\'an, F., Grave, E., Ott, M., Zettlemoyer, L. and
+ Stoyanov, V. (2020) Unsupervised cross-lingual representation learning at scale. In {\it Proceedings of the 58th Annual
+ Meeting of the Association for Computational Linguistics}. arXiv:1911.02116.
+\bibitem[\protect\citename{Devlin {\it et al.}\ }2019]{devlin2019}
+ Devlin, J., Chang, M.-W., Lee, K. and Toutanova, K. (2019) BERT: pre-training of deep bidirectional transformers for
+ language understanding. In {\it Proceedings of the 2019 Conference of the North American Chapter of the Association for
+ Computational Linguistics: Human Language Technologies}.
+\bibitem[\protect\citename{Gamb\"ack and Das }2014]{gamback2014}
+ Gamb\"ack, B. and Das, A. (2014) On measuring the complexity of code-mixing. In {\it Proceedings of the 11th International
+ Conference on Natural Language Processing, Goa, India}.
+\bibitem[\protect\citename{Kakwani {\it et al.}\ }2020]{kakwani2020}
+ Kakwani, D., Kunchukuttan, A., Golla, S., N.C., G., Bhattacharyya, A., Khapra, M. M. and Kumar, P. (2020) IndicNLPSuite:
+ monolingual corpora, evaluation benchmarks and pre-trained multilingual language models for Indian languages. In {\it
+ Findings of the Association for Computational Linguistics: EMNLP 2020}.
+\bibitem[\protect\citename{Khanuja {\it et al.}\ }2021]{khanuja2021}
+ Khanuja, S., Bansal, D., Mehtani, S., Khosla, S., Dey, A., Gopalan, B., Margam, D. K., Aggarwal, P., Nagipogu, R. T., Dave,
+ S., Gupta, S., Gali, S. C. B., Subramanian, V. and Talukdar, P. (2021) MuRIL: multilingual representations for Indian
+ languages. arXiv:2103.10730.
+\bibitem[\protect\citename{Patwa {\it et al.}\ }2020]{patwa2020}
+ Patwa, P., Aguilar, G., Kar, S., Pandey, S., PYKL, S., Gamb\"ack, B., Chakraborty, T., Solorio, T. and Das, A. (2020)
+ SemEval-2020 Task 9: overview of sentiment analysis of code-mixed tweets. In {\it Proceedings of the 14th International
+ Workshop on Semantic Evaluation}. arXiv:2008.04277.
+% VERIFY every entry (full author lists, venue, year, pages) against the papers before submission. They were written from
+% memory; the author lists of Kakwani et al. and Khanuja et al. in particular are not checked.
 \end{thebibliography}

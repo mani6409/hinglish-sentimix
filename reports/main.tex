@@ -1,0 +1,34 @@
+% main.tex: complete document for the report, following the NLE (Natural Language Engineering) style guide.
+%
+% With the course template (which provides the NLE style file) this file uses it. If the style file is not found, it falls back
+% to the standard article class so that the text can still be compiled and checked; the layout then differs from the journal's.
+% Upload to the same Overleaf folder: this file, report_body.tex and cmi_distribution.png (from results/figures/).
+%
+% CONFIRM before submission: full author names and their order, the affiliation line, and the short running headlines.
+\IfFileExists{nle.cls}{\documentclass{nle}}{\documentclass{article}}
+\usepackage{graphicx}
+
+% Commands that the NLE style defines. If the style is loaded, these \providecommand lines change nothing.
+\providecommand{\hpt}{.}                      % centred decimal point in tables
+\providecommand{\ls}{}                        % letter-space (author names)
+\providecommand{\ns}{\,}                      % word-space inside letter-spaced names
+\providecommand{\shortcite}[1]{\cite{#1}}     % citation giving the year only
+\providecommand{\citename}[1]{}               % author part of a bibliography label
+
+\title[Sentiment analysis of Hinglish tweets]{Sentiment analysis of Hindi--English code-mixed tweets:\\
+  baselines, fine-tuned transformers and the role of code-mixing}
+
+\author[M. Kumar and others]
+ {M\ls A\ls N\ls I\ns K\ls U\ls M\ls A\ls R,\ns
+  M\ls O\ls N\ls I\ls S,\ns
+  E\ls K\ls T\ls A\ns K\ls U\ls M\ls A\ls R\ls I\ns
+  and\ns A\ls K\ls A\ls N\ls K\ls S\ls H\ls A\ns K\ls U\ls S\ls H\ls W\ls A\ls H\ls A\\
+  Sitare University, India}
+
+\begin{document}
+
+\maketitle
+
+\input{report_body}
+
+\end{document}
