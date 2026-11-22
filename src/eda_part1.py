@@ -4,6 +4,42 @@ Run from the repo root:  python -m src.eda_part1
 Writes figures to results/figures/ and numbers to results/eda_part1_stats.json.
 Only train and dev are used for conclusions; the test labels are not looked at
 here beyond the class counts the organisers published.
+
+Purpose:
+    First look at the data before any model is trained: how balanced the three classes are, how long tweets
+    are, how much Hindi, English and "other" they contain, and whether the splits overlap.
+
+Why this file exists:
+    Choices later in the project depend on these facts: the metric (weighted F1 suits the class mix), the
+    input length of the models, and the confidence that no tweet leaks from train into dev or test.
+
+Place in the pipeline:
+    src/data.py (load_split)  ->  this script  ->  results/eda_part1_stats.json + four PNG figures.
+    docs/eda_part1.md summarises these numbers; it was written by hand from the JSON file, it is not generated.
+
+Inputs:
+    The three official splits through ``load_split`` (train, dev, test). The test split is loaded because its
+    class counts, length, language tags and text overlap with train and dev are part of the checks. Labels
+    of the test split are used only to count classes.
+
+Outputs:
+    results/eda_part1_stats.json (sections ``labels``, ``length``, ``language``, ``checks``) and the figures
+    label_distribution.png, tweet_length_tokens.png, language_shares.png, dominant_language_share.png in
+    results/figures/. The JSON is also printed.
+
+Used by:
+    Nothing imports this module; it is a command-line script that is run once. Its numbers are quoted in
+    docs/eda_part1.md and in the report draft.
+
+Depends on:
+    src/data.py, src/metrics.py (only for the fixed class order ``LABELS``), matplotlib, numpy.
+
+Notes for maintainers:
+    * Importing this module creates results/figures/ (a side effect at import time, line ``FIG.mkdir``).
+    * ``matplotlib.use("Agg")`` is called before pyplot is imported so the script runs without a display.
+    * ``dominant_share`` is implemented again, with the same meaning, in src/eda_part2.py (open point:
+      the duplicate could be shared).
+    * Rerunning overwrites the JSON and the four figures; the numbers in the JSON are the same for the same data.
 """
 import json
 from collections import Counter
@@ -26,10 +62,37 @@ NEAR_MONO = 0.90  # a tweet is "near-monolingual" if one language has >= 90% of 
 
 
 def norm_text(s):
+    """Normalise a tweet for duplicate detection: lower-case and collapse runs of whitespace.
+
+    Purpose:
+        Two tweets that differ only in capital letters or spacing count as the same text in the overlap
+        checks.
+
+    Args:
+        s: Tweet text (str).
+
+    Returns:
+        The text in lower case with single spaces between words.
+
+    Example:
+        norm_text("Hello   World")  ->  "hello world"
+    """
     return " ".join(s.lower().split())
 
 
 def length_stats(values):
+    """Summarise a list of lengths (tokens or characters) with the numbers used in the report.
+
+    Args:
+        values: Non-empty sequence of numbers.
+
+    Returns:
+        A dict with ``mean`` (rounded to 2 decimals), ``median``, the percentiles ``p90``, ``p95`` and
+        ``p99`` (NumPy's default linear interpolation), ``max`` and ``min`` (ints).
+
+    Raises:
+        ValueError: ``values`` is empty (NumPy cannot take the maximum of an empty array).
+    """
     a = np.array(values)
     return {
         "mean": round(float(a.mean()), 2),
@@ -43,13 +106,42 @@ def length_stats(values):
 
 
 def dominant_share(langs):
-    """Share of the most frequent language among Hin+Eng tokens (None if there are none)."""
+    """Share of the most frequent language among Hin+Eng tokens (None if there are none).
+
+    Purpose:
+        Measures how one-sided a tweet is: 1.0 means all language tokens are in one language, 0.5 means an
+        even split between Hindi and English. Tags ``O`` (other) and ``EMT`` (emoticon) are ignored.
+
+    Args:
+        langs: List of language tags of one tweet.
+
+    Returns:
+        A float in [0.5, 1.0], or None if the tweet has no Hindi or English token.
+
+    Example:
+        dominant_share(["Hin", "Hin", "Eng", "O"])  ->  0.666...
+    """
     c = Counter(l for l in langs if l in ("Hin", "Eng"))
     n = sum(c.values())
     return None if n == 0 else max(c.values()) / n
 
 
 def main():
+    """Compute all statistics, write the JSON file and the figures, and print the JSON.
+
+    Stages (each fills one section of the output dictionary ``out``):
+        1. ``labels``: class counts and percentages per split.
+        2. ``length``: token and character length statistics per split, plus the mean token length per label
+           in train.
+        3. ``language``: share of each language tag among all tokens, and how many tweets are almost
+           single-language (dominant share >= ``NEAR_MONO``).
+        4. ``checks``: empty tweets, duplicate texts inside a split, texts shared between splits, and
+           duplicated train texts that carry different labels. These checks use ``norm_text``.
+        Then the four figures are drawn from the same numbers.
+
+    Side effects:
+        Writes results/eda_part1_stats.json and four PNG files in results/figures/; prints the JSON.
+    """
     splits = {s: load_split(s) for s in ("train", "dev", "test")}
     out = {}
 
@@ -80,7 +172,7 @@ def main():
         tot = sum(c.values())
         shares = {k: round(100 * v / tot, 1) for k, v in sorted(c.items())}
         dom = df["langs"].apply(dominant_share)
-        has = dom.notna()
+        has = dom.notna()  # tweets with at least one Hin or Eng token; the others have no dominant share
         out["language"][s] = {
             "token_counts": dict(c),
             "token_share_%": shares,
@@ -96,6 +188,7 @@ def main():
     sets = {s: set(v) for s, v in norm.items()}
     out["checks"] = {
         "empty_tweets": {s: int((df["n_tokens"] == 0).sum()) for s, df in splits.items()},
+        # tweets minus distinct texts = number of surplus copies inside the split
         "duplicate_texts_within_split": {s: int(len(v) - len(sets[s])) for s, v in norm.items()},
         "texts_in_both_train_and_dev": len(sets["train"] & sets["dev"]),
         "texts_in_both_train_and_test": len(sets["train"] & sets["test"]),
@@ -109,7 +202,7 @@ def main():
 
     # ---- figures ----
     fig, ax = plt.subplots(figsize=(6, 3.6))
-    w = 0.25
+    w = 0.25  # bar width; the three splits are drawn side by side
     for i, s in enumerate(("train", "dev", "test")):
         ax.bar(np.arange(3) + i * w, [out["labels"][s]["share_%"][l] for l in LABELS], w, label=s)
     ax.set_xticks(np.arange(3) + w)

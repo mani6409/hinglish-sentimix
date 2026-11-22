@@ -12,6 +12,11 @@ Mani, Monis, Ekta, Akansha
 4. Ablations: transliteration normalisation and code-mixing index (CMI)
 5. Error analysis
 
+## Documentation
+- `docs/ARCHITECTURE.md`: how the modules fit together (dependency and data-flow diagrams, shared rules, open questions).
+- `docs/DEVELOPMENT_GUIDE.md`: how to run, test, add a model or an analysis, document, and fix common errors.
+- Every source file starts with a header that says what it is for, what it reads and writes, and who uses it.
+
 ## Repository layout
 | Path | Purpose |
 |---|---|
